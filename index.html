@@ -136,6 +136,44 @@
   }
   .retur-badge.normal{ background: rgba(76,175,125,0.15); color: var(--green); }
   .retur-badge.warning{ background: rgba(229,72,77,0.15); color: var(--red); }
+
+  /* ---------- SECTION PENGIRIMAN ---------- */
+  .kirim-ringkasan{ display:grid; grid-template-columns: repeat(5, 1fr); gap:16px; margin-bottom:20px; }
+  @media (max-width:900px){ .kirim-ringkasan{ grid-template-columns: repeat(2, 1fr); } }
+  .kirim-ringkasan .mini-card .value{ font-size:20px; }
+
+  .driver-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px; }
+  .driver-card{ text-align:center; }
+  .driver-photo{
+    width:72px; height:72px; border-radius:50%; margin:0 auto 12px;
+    object-fit:cover; border:2px solid var(--card-border); display:block;
+  }
+  .driver-photo-placeholder{
+    width:72px; height:72px; border-radius:50%; margin:0 auto 12px;
+    background: var(--card-border); display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:22px; color: var(--text-muted);
+  }
+  .driver-card .nama{ font-family:'Oswald',sans-serif; font-weight:600; font-size:15px; margin-bottom:4px; text-transform:uppercase; }
+  .driver-card .total{ font-family:'Oswald',sans-serif; font-weight:700; font-size:30px; color: var(--gold); margin-bottom:10px; }
+  .driver-card .stat-rows{ font-size:12px; text-align:left; }
+  .driver-card .stat-rows .row{ display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--card-border); color: var(--text-muted); }
+  .driver-card .stat-rows .row:last-child{ border-bottom:none; }
+  .driver-card .stat-rows .row span:last-child{ color: var(--text); font-weight:600; }
+  .driver-card .stat-rows .row.rata span:last-child.rendah{ color: var(--red); }
+  .driver-card .stat-rows .row .rendah{ color: var(--red) !important; }
+
+  .peta-wrap{ position:relative; width:100%; }
+  .peta-wrap img{ width:100%; height:auto; display:block; border-radius:8px; }
+  .peta-badge{
+    position:absolute; transform: translate(-50%, -50%);
+    background: rgba(12,12,14,0.85); border:1px solid var(--gold);
+    color: var(--text); font-family:'Oswald',sans-serif; font-weight:700; font-size:12px;
+    padding:3px 8px; border-radius:6px; white-space:nowrap;
+  }
+  .peta-note{ font-size:11px; color: var(--text-muted); margin-top:10px; font-style:italic; }
+
+  .luarkota-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:20px; }
+  @media (max-width:760px){ .luarkota-grid{ grid-template-columns: 1fr; } }
   .chart-card .label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color: var(--text-muted); margin-bottom:14px; }
   .chart-card .label span{ color: var(--text); font-weight:600; text-transform:none; letter-spacing:0; }
   .chart-box{ height: 320px; position: relative; }
@@ -265,6 +303,27 @@
         <div id="retur-badge"></div>
       </div>
     </div>
+
+    <div class="section-header"><h2>Pengiriman</h2><div class="rule"></div></div>
+
+    <div class="kirim-ringkasan" id="kirim-ringkasan"></div>
+
+    <div class="driver-grid" id="driver-grid"></div>
+
+    <div class="card">
+      <div class="label">Peta Sebaran Kiriman — Kabupaten Ngawi</div>
+      <div class="peta-wrap" id="peta-wrap">
+        <img src="peta_ngawi.png" alt="Peta Kabupaten Ngawi">
+      </div>
+      <p class="peta-note">Titik koordinat kecamatan di peta ini estimasi awal — kalau posisinya meleset, tinggal geser angka <code>left</code>/<code>top</code> di variabel KECAMATAN_COORDS pada kode.</p>
+    </div>
+
+    <div class="luarkota-grid">
+      <div class="card top5-card">
+        <div class="top5-title">Top Rank Luar Kota</div>
+        <div id="luarkota-list"></div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -350,6 +409,7 @@
       renderSegmentasi(d.segmentasi);
       renderKategori(d.kategori);
       renderRetur(d.retur);
+      renderPengiriman(d.pengiriman);
       showState('content');
       window._lastTren = d.tren;
     } catch(err){
@@ -695,6 +755,88 @@
     badge.innerHTML = d.statusWarning
       ? '<span class="retur-badge warning">⚠ Perlu Diperhatikan</span>'
       : '<span class="retur-badge normal">Normal</span>';
+  }
+
+  // ==================== SECTION 6: PENGIRIMAN + PETA ====================
+  // ESTIMASI POSISI — belum diverifikasi presisi ke gambar peta_ngawi.png asli.
+  // Cara koreksi: buka dashboard, lihat badge angka nempel di posisi mana,
+  // lalu geser angka left/top (dalam persen, 0-100) sampai pas di kecamatan yang benar.
+  const KECAMATAN_COORDS = {
+    KARANGANYAR: { left: 28, top: 26 },
+    MANTINGAN:   { left: 13, top: 40 },
+    WIDODAREN:   { left: 23, top: 50 },
+    NGRAMBE:     { left: 16, top: 74 },
+    SINE:        { left: 7,  top: 79 },
+    JOGOROGO:    { left: 19, top: 84 },
+    KEDUNGGALAR: { left: 41, top: 58 },
+    PARON:       { left: 49, top: 71 },
+    KENDAL:      { left: 35, top: 87 },
+    GERIH:       { left: 59, top: 80 },
+    GENENG:      { left: 67, top: 76 },
+    PITU:        { left: 62, top: 46 },
+    NGAWI:       { left: 70, top: 57 },
+    KASREMAN:    { left: 81, top: 56 },
+    PADAS:       { left: 86, top: 72 },
+    BRINGIN:     { left: 95, top: 65 },
+    KARANGJATI:  { left: 91, top: 79 },
+    PANGKUR:     { left: 83, top: 84 },
+    KWADUNGAN:   { left: 78, top: 88 }
+  };
+
+  // Nama file foto driver — taruh file jpg-nya di root repo GitHub (sejajar sama index.html).
+  const DRIVER_PHOTOS = {
+    TIO: 'TIO.jpg', TEDY: 'TEDY.jpg', WAHYU: 'WAHYU.jpg', AZIZ: 'AZIZ.jpg', ALZAN: 'ALZAN.jpg'
+  };
+
+  function renderPengiriman(d){
+    const rk = d.ringkasan;
+    $('kirim-ringkasan').innerHTML = `
+      <div class="card mini-card"><div class="label">Total Kirim</div><div class="value">${rk.totalKirim}</div></div>
+      <div class="card mini-card"><div class="label">Rata-rata / Hari</div><div class="value">${rk.rataPerHari.toFixed(1)}</div></div>
+      <div class="card mini-card"><div class="label">Pelanggan</div><div class="value">${rk.jumlahPelanggan}</div></div>
+      <div class="card mini-card"><div class="label">Proyek</div><div class="value">${rk.jumlahProyek}</div></div>
+      <div class="card mini-card"><div class="label">Belanja</div><div class="value">${rk.jumlahBelanja}</div></div>
+    `;
+
+    const driverGrid = $('driver-grid');
+    driverGrid.innerHTML = d.drivers.map(dr => {
+      const photo = DRIVER_PHOTOS[dr.nama];
+      const photoHtml = photo
+        ? `<img class="driver-photo" src="${photo}" alt="${dr.nama}" onerror="this.outerHTML='<div class=&quot;driver-photo-placeholder&quot;>${dr.nama[0]}</div>'">`
+        : `<div class="driver-photo-placeholder">${dr.nama[0]}</div>`;
+      return `
+        <div class="card driver-card">
+          ${photoHtml}
+          <div class="nama">${dr.nama}</div>
+          <div class="total">${dr.totalKirim}</div>
+          <div class="stat-rows">
+            <div class="row"><span>Proyek</span><span>${dr.proyek}</span></div>
+            <div class="row"><span>Organik</span><span>${dr.organik}</span></div>
+            <div class="row"><span>Luar Kota</span><span>${dr.luarKota}</span></div>
+            <div class="row"><span>Lembur</span><span>${dr.lembur}</span></div>
+            <div class="row rata"><span>Rata-rata/Hari</span><span class="${dr.rataRendah ? 'rendah' : ''}">${dr.rataPerHari.toFixed(1)}</span></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const petaWrap = $('peta-wrap');
+    const badges = petaWrap.querySelectorAll('.peta-badge');
+    badges.forEach(b => b.remove());
+    d.perKecamatan.forEach(k => {
+      const coord = KECAMATAN_COORDS[k.kecamatan];
+      if(!coord) return;
+      const badge = document.createElement('div');
+      badge.className = 'peta-badge';
+      badge.style.left = coord.left + '%';
+      badge.style.top = coord.top + '%';
+      badge.textContent = k.kecamatan + ': ' + k.jumlah;
+      petaWrap.appendChild(badge);
+    });
+
+    $('luarkota-list').innerHTML = d.topLuarKota.length
+      ? d.topLuarKota.map(l => `<div class="row"><span class="nama">${l.alamat}</span><span class="val">${l.jumlah}</span></div>`).join('')
+      : '<p style="color:var(--text-muted);font-size:13px;">Belum ada data luar kota bulan ini.</p>';
   }
 
   initMonthSelector();
