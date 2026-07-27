@@ -31,7 +31,7 @@
     min-height:100vh;
   }
 
-  header{ padding: 32px 24px 0; max-width: 1180px; margin: 0 auto; }
+  header{ }
   .topbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
   .brand{ display:flex; align-items:center; gap:14px; }
   .brand-mark{ width:44px; height:44px; border-radius:50%; box-shadow: 0 0 18px rgba(242,194,48,0.3); flex-shrink:0; object-fit:cover; }
@@ -50,13 +50,40 @@
   select:focus-visible{ outline: 2px solid var(--gold); outline-offset: 2px; }
   select option:disabled{ color:#5a5a5f; }
 
-  .header-rule{ height:2px; margin-top:20px; background: linear-gradient(90deg, var(--gold), transparent 60%); border-radius:2px; }
+  header.sticky-header{
+    position: sticky; top: 0; z-index: 50;
+    background: var(--bg);
+    padding-bottom: 0;
+    border-bottom: 1px solid var(--card-border);
+  }
 
-  main{ max-width: 1180px; margin: 0 auto; padding: 8px 24px 60px; }
+  .tab-nav{
+    display:flex; gap:4px; overflow-x:auto; margin-top:14px;
+    max-width:1180px; margin-left:auto; margin-right:auto;
+    scrollbar-width: thin;
+  }
+  .tab-btn{
+    background:transparent; border:none; color:var(--text-muted);
+    font-family:'Oswald',sans-serif; font-weight:600; font-size:13px;
+    text-transform:uppercase; letter-spacing:.04em;
+    padding:12px 16px 10px; cursor:pointer; border-bottom:3px solid transparent;
+    white-space:nowrap; transition: color .15s, border-color .15s;
+  }
+  .tab-btn:hover{ color: var(--text); }
+  .tab-btn.active{ color: var(--gold); border-bottom-color: var(--gold); }
 
-  .status-line{ display:flex; align-items:baseline; gap:10px; margin: 22px 0 6px; flex-wrap:wrap; }
-  .status-line h2{ font-family:'Oswald',sans-serif; font-size: 15px; font-weight: 500; letter-spacing:.06em; text-transform:uppercase; color: var(--text-muted); margin:0; }
-  #bulan-label{ color: var(--text); font-weight:700; }
+  main{ max-width: 1180px; margin: 0 auto; padding: 24px 24px 60px; }
+
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  .status-line{
+    display:flex; align-items:baseline; gap:10px; margin: 0 0 20px; flex-wrap:wrap;
+    background: linear-gradient(90deg, rgba(242,194,48,0.16), transparent);
+    border-left:4px solid var(--gold); padding:14px 16px; border-radius:6px;
+  }
+  .status-line h2{ font-family:'Oswald',sans-serif; font-size: 16px; font-weight: 700; letter-spacing:.04em; text-transform:uppercase; color: var(--text); margin:0; }
+  #bulan-label{ color: var(--gold); font-weight:700; }
   .pekan-note{ font-size:12px; color: var(--text-muted); margin: 0 0 20px; font-style:italic; }
 
   .card{
@@ -92,9 +119,14 @@
   .mini-card .sub.up{ color: var(--green); }
   .mini-card .sub.down{ color: var(--red); }
 
-  .section-header{ margin: 40px 0 16px; display:flex; align-items:center; gap:10px; }
-  .section-header h2{ font-family:'Oswald',sans-serif; font-size: 15px; font-weight: 500; letter-spacing:.06em; text-transform:uppercase; color: var(--text-muted); margin:0; }
-  .section-header .rule{ flex:1; height:1px; background: var(--card-border); }
+  .section-header{
+    margin: 0 0 20px; display:flex; align-items:center; gap:10px;
+    background: linear-gradient(90deg, rgba(242,194,48,0.16), transparent);
+    border-left:4px solid var(--gold); padding:14px 16px; border-radius:6px;
+  }
+  .section-header:not(:first-child){ margin-top:36px; }
+  .section-header h2{ font-family:'Oswald',sans-serif; font-size: 16px; font-weight: 700; letter-spacing:.04em; text-transform:uppercase; color: var(--text); margin:0; }
+  .section-header .rule{ display:none; }
 
   .tren-grid{ display:grid; grid-template-columns: 1fr; gap:20px; }
 
@@ -182,6 +214,16 @@
 
   .luarkota-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:20px; }
   @media (max-width:760px){ .luarkota-grid{ grid-template-columns: 1fr; } }
+
+  .kesimpulan-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .kesimpulan-table th{
+    text-align:left; padding:10px 12px; color: var(--text-muted); font-size:11px;
+    text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--card-border);
+  }
+  .kesimpulan-table td{ padding:12px; border-bottom:1px solid var(--card-border); }
+  .kesimpulan-table tr:last-child td{ border-bottom:none; }
+  .kesimpulan-table .metrik{ font-weight:600; color: var(--text); }
+  .kesimpulan-table .angka{ color: var(--text); }
   .chart-card .label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color: var(--text-muted); margin-bottom:14px; }
   .chart-card .label span{ color: var(--text); font-weight:600; text-transform:none; letter-spacing:0; }
   .chart-box{ height: 320px; position: relative; }
@@ -195,8 +237,8 @@
 </head>
 <body>
 
-<header>
-  <div class="topbar">
+<header class="sticky-header">
+  <div class="topbar" style="max-width:1180px; margin:0 auto; padding: 20px 24px 0;">
     <div class="brand">
       <img class="brand-mark" src="logo.png" alt="Logo Kubah Emas">
       <div class="brand-text">
@@ -215,7 +257,14 @@
       </div>
     </div>
   </div>
-  <div class="header-rule"></div>
+  <nav class="tab-nav" id="tab-nav">
+    <button class="tab-btn active" data-tab="ringkasan">Ringkasan &amp; Tren</button>
+    <button class="tab-btn" data-tab="konsumen">Konsumen</button>
+    <button class="tab-btn" data-tab="kategori">Kategori</button>
+    <button class="tab-btn" data-tab="retur">Retur</button>
+    <button class="tab-btn" data-tab="pengiriman">Pengiriman</button>
+    <button class="tab-btn" data-tab="kesimpulan">Kesimpulan</button>
+  </nav>
 </header>
 
 <main>
@@ -224,6 +273,7 @@
   <div id="empty" class="hidden">Belum ada data untuk bulan ini.</div>
 
   <div id="content" class="hidden">
+    <div class="tab-panel active" data-tab="ringkasan">
     <div class="status-line">
       <h2>Ringkasan — <span id="bulan-label">-</span><span id="pekan-label"></span></h2>
     </div>
@@ -288,9 +338,15 @@
       </div>
     </div>
 
+    </div>
+
+    <div class="tab-panel" data-tab="konsumen">
     <div class="section-header"><h2>Segmentasi Customer</h2><div class="rule"></div></div>
     <div class="segmen-grid" id="segmen-grid"></div>
 
+    </div>
+
+    <div class="tab-panel" data-tab="kategori">
     <div class="section-header"><h2>Penjualan per Kategori</h2><div class="rule"></div></div>
     <div class="card chart-card">
       <div class="label">Kontribusi Omset per Kategori Barang</div>
@@ -298,6 +354,9 @@
     </div>
     <div class="top5-grid" id="top5-grid"></div>
 
+    </div>
+
+    <div class="tab-panel" data-tab="retur">
     <div class="section-header"><h2>Retur</h2><div class="rule"></div></div>
     <div class="retur-grid">
       <div class="card mini-card">
@@ -312,6 +371,9 @@
       </div>
     </div>
 
+    </div>
+
+    <div class="tab-panel" data-tab="pengiriman">
     <div class="section-header"><h2>Pengiriman</h2><div class="rule"></div></div>
 
     <div class="kirim-ringkasan" id="kirim-ringkasan"></div>
@@ -331,6 +393,19 @@
         <div class="top5-title">Top Rank Luar Kota</div>
         <div id="luarkota-list"></div>
       </div>
+    </div>
+
+    </div>
+
+    <div class="tab-panel" data-tab="kesimpulan">
+    <div class="section-header"><h2>Kesimpulan</h2><div class="rule"></div></div>
+    <div class="card">
+      <table class="kesimpulan-table">
+        <thead><tr><th>Metrik</th><th>Real</th><th>Target</th><th>Status</th></tr></thead>
+        <tbody id="kesimpulan-body"></tbody>
+      </table>
+      <p class="peta-note" style="margin-top:14px;">Nota Deal, Sales, dan Driver belum masuk tabel ini — belum ada sumber data buat angka target/KPI-nya.</p>
+    </div>
     </div>
   </div>
 </main>
@@ -418,6 +493,7 @@
       renderKategori(d.kategori);
       renderRetur(d.retur);
       renderPengiriman(d.pengiriman);
+      renderKesimpulan(d.ringkasan, d.pengiriman, d.retur);
       showState('content');
       window._lastTren = d.tren;
     } catch(err){
@@ -847,6 +923,66 @@
       : '<p style="color:var(--text-muted);font-size:13px;">Belum ada data luar kota bulan ini.</p>';
   }
 
+  function badgeHtml(ok, textOk, textBad){
+    return ok
+      ? `<span class="retur-badge normal">${textOk}</span>`
+      : `<span class="retur-badge warning">${textBad}</span>`;
+  }
+
+  function renderKesimpulan(ringkasan, pengiriman, retur){
+    const rows = [];
+
+    if(!ringkasan.isPekanView){
+      rows.push({
+        metrik: 'Omset',
+        real: formatRupiah(ringkasan.omset),
+        target: formatRupiah(ringkasan.omsetTarget),
+        status: badgeHtml(ringkasan.omsetSelisih >= 0, 'Tercapai', 'Kurang ' + formatRupiah(Math.abs(ringkasan.omsetSelisih)))
+      });
+      rows.push({
+        metrik: 'Margin',
+        real: formatRupiah(ringkasan.margin),
+        target: formatRupiah(ringkasan.marginTarget),
+        status: badgeHtml(ringkasan.marginSelisih >= 0, 'Tercapai', 'Kurang ' + formatRupiah(Math.abs(ringkasan.marginSelisih)))
+      });
+    }
+
+    rows.push({
+      metrik: 'Kiriman',
+      real: pengiriman.ringkasan.totalKirim + ' kiriman (' + pengiriman.ringkasan.rataPerHari.toFixed(1) + '/hari)',
+      target: '-',
+      status: '<span class="retur-badge normal">Info</span>'
+    });
+
+    rows.push({
+      metrik: 'Retur',
+      real: formatPct(retur.pctRetur) + ' (' + formatRupiah(retur.totalRetur) + ')',
+      target: '< 5%',
+      status: badgeHtml(!retur.statusWarning, 'Normal', 'Perlu Diperhatikan')
+    });
+
+    $('kesimpulan-body').innerHTML = rows.map(r => `
+      <tr>
+        <td class="metrik">${r.metrik}</td>
+        <td class="angka">${r.real}</td>
+        <td class="angka">${r.target}</td>
+        <td>${r.status}</td>
+      </tr>
+    `).join('');
+  }
+
+  function initTabs(){
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelector('.tab-panel[data-tab="' + btn.dataset.tab + '"]').classList.add('active');
+      });
+    });
+  }
+
+  initTabs();
   initMonthSelector();
 </script>
 
