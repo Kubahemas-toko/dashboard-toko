@@ -97,6 +97,24 @@
   .section-header .rule{ flex:1; height:1px; background: var(--card-border); }
 
   .tren-grid{ display:grid; grid-template-columns: 1fr; gap:20px; }
+
+  .segmen-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; }
+  @media (max-width:900px){ .segmen-grid{ grid-template-columns: 1fr; } }
+  .segmen-card .segmen-title{ font-family:'Oswald',sans-serif; font-size:16px; font-weight:600; margin-bottom:12px; }
+  .segmen-card .segmen-badge{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 14px; border-radius:8px; margin-bottom:14px;
+    background: rgba(255,255,255,0.04);
+  }
+  .segmen-card .segmen-badge .pct{ font-family:'Oswald',sans-serif; font-size:18px; font-weight:700; }
+  .segmen-card .segmen-badge .val{ font-size:14px; font-weight:600; }
+  .segmen-card .mini-chart-box{ height:130px; margin-bottom:14px; }
+  .segmen-card .kategori-list{ font-size:13px; }
+  .segmen-card .kategori-list .row{
+    display:flex; justify-content:space-between; padding:6px 0;
+    border-bottom:1px solid var(--card-border); color: var(--text-muted);
+  }
+  .segmen-card .kategori-list .row span:last-child{ color: var(--text); font-weight:600; }
   .chart-card .label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color: var(--text-muted); margin-bottom:14px; }
   .chart-card .label span{ color: var(--text); font-weight:600; text-transform:none; letter-spacing:0; }
   .chart-box{ height: 320px; position: relative; }
@@ -202,6 +220,9 @@
         <div class="chart-box"><canvas id="chart-tahun"></canvas></div>
       </div>
     </div>
+
+    <div class="section-header"><h2>Segmentasi Customer</h2><div class="rule"></div></div>
+    <div class="segmen-grid" id="segmen-grid"></div>
   </div>
 </main>
 
@@ -284,6 +305,7 @@
       populatePekanSelector(d.tren.perMinggu.map(p => p.pekan));
       renderTren(d.tren, 'ALL');
       renderRingkasan(d.ringkasan);
+      renderSegmentasi(d.segmentasi);
       showState('content');
       window._lastTren = d.tren;
     } catch(err){
@@ -473,35 +495,79 @@
 
   function renderTahunChart(perBulanTahun){
     destroyChart('chart-tahun');
-    // bulan yang belum ada data (0) digambar putus, bukan disambung ke 0
-    const dataPoints = perBulanTahun.map(d => d.omset > 0 ? d.omset : null);
+    const d2026 = perBulanTahun.map(d => d.omset > 0 ? d.omset : null);
+    const d2025 = perBulanTahun.map(d => d.omset2025 > 0 ? d.omset2025 : null);
+    const d2024 = perBulanTahun.map(d => d.omset2024 > 0 ? d.omset2024 : null);
     charts['chart-tahun'] = new Chart($('chart-tahun').getContext('2d'), {
       type: 'line',
       data: {
         labels: perBulanTahun.map(d => d.bulanSingkat),
-        datasets: [{
-          label: 'Omset',
-          data: dataPoints,
-          borderColor: COLOR_GOLD,
-          backgroundColor: COLOR_GOLD + '25',
-          fill: true,
-          tension: 0.35,
-          spanGaps: false,
-          pointRadius: 4,
-          pointBackgroundColor: COLOR_GOLD
-        }]
+        datasets: [
+          { label: '2026', data: d2026, borderColor: COLOR_GOLD, backgroundColor: COLOR_GOLD + '25',
+            fill: true, tension: 0.35, spanGaps: false, pointRadius: 4, pointBackgroundColor: COLOR_GOLD, order: 1 },
+          { label: '2025', data: d2025, borderColor: '#5fb571', backgroundColor: 'transparent',
+            fill: false, tension: 0.35, spanGaps: false, pointRadius: 2, pointBackgroundColor: '#5fb571', order: 2 },
+          { label: '2024', data: d2024, borderColor: '#5b6b78', backgroundColor: 'transparent',
+            fill: false, tension: 0.35, spanGaps: false, pointRadius: 2, pointBackgroundColor: '#5b6b78', order: 3 }
+        ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx) => formatRupiah(ctx.parsed.y) } }
+          legend: { position: 'top', align: 'end', labels: { color: COLOR_TEXT, usePointStyle: true, boxWidth: 8 } },
+          tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + formatRupiah(ctx.parsed.y) } }
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: COLOR_TEXT } },
           y: { grid: { color: COLOR_GRID }, ticks: { color: COLOR_MUTED, callback: (v) => formatRupiahShort(v) } }
         }
       }
+    });
+  }
+
+  const SEGMEN_COLOR = { ORGANIK: COLOR_STEEL, PROYEK: '#5fb571', TUKANG: COLOR_GOLD };
+  const SEGMEN_LABEL = { ORGANIK: 'Organik', PROYEK: 'Proyek', TUKANG: 'Tukang' };
+
+  function renderSegmentasi(data){
+    const grid = $('segmen-grid');
+    grid.innerHTML = '';
+    data.segments.forEach(seg => {
+      const color = SEGMEN_COLOR[seg.customer] || COLOR_MUTED;
+      const canvasId = 'mini-chart-' + seg.customer;
+      const card = document.createElement('div');
+      card.className = 'card segmen-card';
+      card.innerHTML = `
+        <div class="segmen-title" style="color:${color}">${SEGMEN_LABEL[seg.customer] || seg.customer}</div>
+        <div class="segmen-badge" style="border:1px solid ${color}55">
+          <span class="pct" style="color:${color}">${(seg.pct*100).toFixed(0)}%</span>
+          <span class="val">${formatRupiah(seg.omset)}</span>
+        </div>
+        <div class="mini-chart-box"><canvas id="${canvasId}"></canvas></div>
+        <div class="kategori-list">
+          ${seg.perKategori.map(k => `<div class="row"><span>${k.kategori}</span><span>${formatRupiah(k.omset)}</span></div>`).join('')}
+        </div>
+      `;
+      grid.appendChild(card);
+
+      destroyChart(canvasId);
+      requestAnimationFrame(() => {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        charts[canvasId] = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: seg.perPekan.map(p => 'P' + p.pekan),
+            datasets: [{ data: seg.perPekan.map(p => p.omset), backgroundColor: color, borderRadius: 4, maxBarThickness: 32 }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => formatRupiah(c.parsed.y) } } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: COLOR_MUTED } },
+              y: { display: false }
+            }
+          }
+        });
+      });
     });
   }
 
