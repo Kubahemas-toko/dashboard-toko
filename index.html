@@ -127,6 +127,15 @@
   .top5-card .row:last-child{ border-bottom:none; }
   .top5-card .row .nama{ color: var(--text-muted); }
   .top5-card .row .val{ color: var(--text); font-weight:600; white-space:nowrap; }
+
+  .retur-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  @media (max-width:760px){ .retur-grid{ grid-template-columns: 1fr; } }
+  .retur-badge{
+    display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px;
+    font-size:12px; font-weight:700; margin-top:10px;
+  }
+  .retur-badge.normal{ background: rgba(76,175,125,0.15); color: var(--green); }
+  .retur-badge.warning{ background: rgba(229,72,77,0.15); color: var(--red); }
   .chart-card .label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color: var(--text-muted); margin-bottom:14px; }
   .chart-card .label span{ color: var(--text); font-weight:600; text-transform:none; letter-spacing:0; }
   .chart-box{ height: 320px; position: relative; }
@@ -242,6 +251,20 @@
       <div class="kategori-chart-box"><canvas id="chart-kategori"></canvas></div>
     </div>
     <div class="top5-grid" id="top5-grid"></div>
+
+    <div class="section-header"><h2>Retur</h2><div class="rule"></div></div>
+    <div class="retur-grid">
+      <div class="card mini-card">
+        <div class="label">Total Retur</div>
+        <div class="value" id="retur-value">Rp 0</div>
+        <div class="sub" id="retur-mom-sub"></div>
+      </div>
+      <div class="card mini-card">
+        <div class="label">Persentase Retur terhadap Omset</div>
+        <div class="value" id="retur-pct-value">0%</div>
+        <div id="retur-badge"></div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -326,6 +349,7 @@
       renderRingkasan(d.ringkasan);
       renderSegmentasi(d.segmentasi);
       renderKategori(d.kategori);
+      renderRetur(d.retur);
       showState('content');
       window._lastTren = d.tren;
     } catch(err){
@@ -646,6 +670,31 @@
         ${data.top5Margin.map(i => `<div class="row"><span class="nama">${i.nama}</span><span class="val">${formatRupiah(i.margin)}</span></div>`).join('')}
       </div>
     `;
+  }
+
+  function renderRetur(d){
+    $('retur-value').textContent = formatRupiah(d.totalRetur);
+    $('retur-pct-value').textContent = formatPct(d.pctRetur);
+
+    if(d.bulanLalu){
+      const naik = d.bulanLalu.totalRetur > 0 ? ((d.totalRetur - d.bulanLalu.totalRetur) / d.bulanLalu.totalRetur) : null;
+      const sub = $('retur-mom-sub');
+      if(naik !== null){
+        sub.textContent = (naik >= 0 ? '▲ ' : '▼ ') + formatPct(Math.abs(naik)) + ' dari bulan lalu (' + formatRupiah(d.bulanLalu.totalRetur) + ')';
+        sub.className = 'sub ' + (naik >= 0 ? 'down' : 'up'); // retur naik = buruk (merah), retur turun = bagus (hijau)
+      } else {
+        sub.textContent = 'Bulan lalu tidak ada retur';
+        sub.className = 'sub';
+      }
+    } else {
+      $('retur-mom-sub').textContent = 'Ini bulan pertama data';
+      $('retur-mom-sub').className = 'sub';
+    }
+
+    const badge = $('retur-badge');
+    badge.innerHTML = d.statusWarning
+      ? '<span class="retur-badge warning">⚠ Perlu Diperhatikan</span>'
+      : '<span class="retur-badge normal">Normal</span>';
   }
 
   initMonthSelector();
