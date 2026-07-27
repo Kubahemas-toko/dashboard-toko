@@ -8,19 +8,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #14110b;
-    --card: #201a10;
-    --card-border: #3a2f18;
-    --card-border-hover: #4a3c1e;
-    --gold: #e8b923;
-    --gold-bright: #f7d873;
-    --gold-dim: #8a6a1f;
-    --copper: #c9852b;
-    --copper-dim: #7a5220;
-    --text: #f4efe0;
-    --text-muted: #a89b78;
-    --red: #d9564a;
-    --green: #5fb571;
+    --bg: #0c0c0e;
+    --card: #1a1a1d;
+    --card-border: #2b2b30;
+    --card-border-hover: #3d3d44;
+    --gold: #f2c230;
+    --gold-bright: #ffd85c;
+    --gold-dim: #8a6a1a;
+    --steel: #7fa8c9;
+    --steel-bright: #a9c8e0;
+    --steel-dim: #3f5c73;
+    --text: #eef0f2;
+    --text-muted: #8f929a;
+    --red: #e5484d;
+    --green: #4caf7d;
   }
 
   *{ box-sizing:border-box; }
@@ -28,7 +29,8 @@
   body{
     margin:0;
     background:
-      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(232,185,35,0.10), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(242,194,48,0.09), transparent 55%),
+      radial-gradient(ellipse 700px 400px at 90% 10%, rgba(127,168,201,0.07), transparent 55%),
       var(--bg);
     color: var(--text);
     font-family:'Inter',sans-serif;
@@ -58,7 +60,19 @@
   select:focus-visible{ outline: 2px solid var(--gold); outline-offset: 2px; }
   select option:disabled{ color:#5a5340; }
 
-  .dome-divider{ width:100%; height:40px; margin-top:20px; overflow:hidden; }
+  .corrugated-strip{
+    height: 5px;
+    margin-top: 18px;
+    border-radius: 3px;
+    background: repeating-linear-gradient(
+      135deg,
+      var(--steel-dim) 0px, var(--steel-dim) 2px,
+      transparent 2px, transparent 9px
+    );
+    opacity: 0.55;
+  }
+
+  .dome-divider{ width:100%; height:40px; margin-top:8px; overflow:hidden; }
   .dome-divider svg{ display:block; width:100%; height:100%; }
 
   main{ max-width: 1180px; margin: 0 auto; padding: 8px 24px 60px; }
@@ -100,7 +114,7 @@
     line-height:1.1; margin-bottom: 8px; word-break:break-word;
   }
   .gauge-value-block .value.omset-color{ color: var(--gold-bright); }
-  .gauge-value-block .value.margin-color{ color: var(--copper); }
+  .gauge-value-block .value.margin-color{ color: var(--steel-bright); }
   .gauge-value-block .sub{ font-size:13px; color: var(--text-muted); }
   .gauge-value-block .sub.up{ color: var(--green); }
   .gauge-value-block .sub.down{ color: var(--red); }
@@ -121,7 +135,11 @@
     font-family:'Oswald',sans-serif; font-size: 15px; font-weight: 500;
     letter-spacing:.06em; text-transform:uppercase; color: var(--text-muted); margin:0;
   }
-  .section-header .rule{ flex:1; height:1px; background: linear-gradient(90deg, var(--card-border), transparent); }
+  .section-header .rule{
+    flex:1; height:5px;
+    background: repeating-linear-gradient(135deg, var(--card-border) 0px, var(--card-border) 2px, transparent 2px, transparent 9px);
+    opacity:0.7;
+  }
 
   .tren-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
   @media (max-width:760px){ .tren-grid{ grid-template-columns: 1fr; } }
@@ -163,6 +181,7 @@
       </div>
     </div>
   </div>
+  <div class="corrugated-strip" aria-hidden="true"></div>
   <div class="dome-divider">
     <svg viewBox="0 0 1180 40" preserveAspectRatio="none">
       <path d="M0,38 Q295,-10 590,20 T1180,38" fill="none" stroke="url(#g)" stroke-width="2"/>
@@ -238,7 +257,7 @@
         <div class="label">Omset &amp; Margin per Minggu — <span id="tren-bulan-label"></span></div>
         <div class="chart-legend">
           <span class="item"><span class="dot" style="background:var(--gold-bright)"></span>Omset</span>
-          <span class="item"><span class="dot" style="background:var(--copper)"></span>Margin</span>
+          <span class="item"><span class="dot" style="background:var(--steel)"></span>Margin</span>
         </div>
         <div id="chart-minggu" class="chart-wrap"></div>
       </div>
@@ -320,14 +339,12 @@
     showState('loading');
     currentMonth = month;
     try{
-      const tren = await apiCall({ action: 'tren', month });
-      populatePekanSelector(tren.perMinggu.map(p => p.pekan));
-      renderTren(tren, 'ALL');
-
-      const ringkasan = await apiCall({ action: 'ringkasan', month, pekan: 'ALL' });
-      renderRingkasan(ringkasan);
+      const d = await apiCall({ action: 'dashboard', month, pekan: 'ALL' });
+      populatePekanSelector(d.tren.perMinggu.map(p => p.pekan));
+      renderTren(d.tren, 'ALL');
+      renderRingkasan(d.ringkasan);
       showState('content');
-      window._lastTren = tren;
+      window._lastTren = d.tren;
     } catch(err){
       $('error').textContent = 'Gagal memuat dashboard: ' + err.message;
       showState('error');
@@ -371,7 +388,7 @@
 
     if(d.isPekanView){
       renderGauge('gauge-omset', 100, 'var(--gold-bright)', true);
-      renderGauge('gauge-margin', 100, 'var(--copper)', true);
+      renderGauge('gauge-margin', 100, 'var(--steel)', true);
       $('omset-selisih-text').textContent = 'Total Omset Pekan ' + d.pekan;
       $('omset-selisih-text').className = 'sub';
       $('margin-selisih-text').textContent = 'Total Margin Pekan ' + d.pekan;
@@ -382,7 +399,7 @@
     const omsetPct = d.omsetTarget > 0 ? (d.omset / d.omsetTarget) * 100 : 0;
     const marginPct2 = d.marginTarget > 0 ? (d.margin / d.marginTarget) * 100 : 0;
     renderGauge('gauge-omset', omsetPct, 'var(--gold-bright)', false);
-    renderGauge('gauge-margin', marginPct2, 'var(--copper)', false);
+    renderGauge('gauge-margin', marginPct2, 'var(--steel)', false);
 
     $('omset-selisih-text').textContent =
       (d.omsetSelisih >= 0 ? '+' : '') + formatRupiah(d.omsetSelisih) + ' dari target ' + formatRupiah(d.omsetTarget);
@@ -476,8 +493,8 @@
         <g opacity="${opacity}">
           <rect x="${omsetX.toFixed(1)}" y="${omsetY.toFixed(1)}" width="${barW.toFixed(1)}" height="${omsetH.toFixed(1)}" rx="3" fill="url(#omsetGrad)"/>
           <text x="${(omsetX+barW/2).toFixed(1)}" y="${(omsetY-6).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="var(--gold-bright)">${formatRupiahShort(d.omset)}</text>
-          <rect x="${marginX.toFixed(1)}" y="${marginY.toFixed(1)}" width="${barW.toFixed(1)}" height="${marginH.toFixed(1)}" rx="3" fill="url(#marginGrad)"/>
-          <text x="${(marginX+barW/2).toFixed(1)}" y="${(marginY-6).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="var(--copper)">${formatRupiahShort(marginVal)}</text>
+          <rect x="${marginX.toFixed(1)}" y="${marginY.toFixed(1)}" width="${barW.toFixed(1)}" height="${marginH.toFixed(1)}" rx="3" fill="url(#marginGradSteel)"/>
+          <text x="${(marginX+barW/2).toFixed(1)}" y="${(marginY-6).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="var(--steel-bright)">${formatRupiahShort(marginVal)}</text>
           <text x="${(groupX+groupW/2).toFixed(1)}" y="${h - padB + 18}" text-anchor="middle" font-size="11" fill="${isHighlight ? 'var(--gold-bright)' : 'var(--text-muted)'}" font-weight="${isHighlight ? '700' : '400'}">Pekan ${d.pekan}</text>
         </g>
       `;
@@ -490,9 +507,9 @@
             <stop offset="0%" stop-color="var(--gold-bright)"/>
             <stop offset="100%" stop-color="var(--gold-dim)"/>
           </linearGradient>
-          <linearGradient id="marginGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--copper)"/>
-            <stop offset="100%" stop-color="var(--copper-dim)"/>
+          <linearGradient id="marginGradSteel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--steel)"/>
+            <stop offset="100%" stop-color="var(--steel-dim)"/>
           </linearGradient>
         </defs>
         ${groups}
