@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Tim Toko — Kubah Emas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14110b;
+    --bg-alt: #1b160d;
+    --card: #201a10;
+    --card-border: #3a2f18;
+    --gold: #e8b923;
+    --gold-bright: #f7d873;
+    --gold-dim: #8a6a1f;
+    --text: #f4efe0;
+    --text-muted: #a89b78;
+    --red: #c0392b;
+    --green: #4c9a5b;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(232,185,35,0.10), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+
+  /* ---------- HEADER ---------- */
+  header{
+    padding: 28px 24px 0;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:16px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .brand-mark{
+    width:44px; height:44px;
+    border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 55%, var(--gold-dim) 100%);
+    box-shadow: 0 0 18px rgba(232,185,35,0.35);
+    flex-shrink:0;
+    /* placeholder logo — ganti pakai <img src="logo.png"> kalau file logo sudah ada */
+  }
+  .brand-text .eyebrow{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color: var(--text-muted);
+    margin:0 0 2px;
+  }
+  .brand-text h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:22px;
+    letter-spacing:.01em;
+    margin:0;
+    color: var(--gold-bright);
+  }
+
+  .month-picker{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .month-picker label{
+    font-size:12px;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:.08em;
+  }
+  select{
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  select:focus-visible{
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+  select option:disabled{
+    color:#5a5340;
+  }
+
+  /* dekorasi arc emas — motif "kubah" */
+  .dome-divider{
+    width:100%;
+    height:40px;
+    margin-top:20px;
+    overflow:hidden;
+  }
+  .dome-divider svg{ display:block; width:100%; height:100%; }
+
+  main{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 8px 24px 60px;
+  }
+
+  .status-line{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin: 22px 0 26px;
+  }
+  .status-line h2{
+    font-family:'Oswald',sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color: var(--text-muted);
+    margin:0;
+  }
+  #bulan-label{
+    color: var(--gold-bright);
+    font-weight:600;
+  }
+
+  /* ---------- HERO STAT ---------- */
+  .hero-grid{
+    display:grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap:18px;
+    margin-bottom: 18px;
+  }
+  @media (max-width:760px){
+    .hero-grid{ grid-template-columns: 1fr; }
+  }
+
+  .card{
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+
+  .hero-omset .label{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color: var(--text-muted);
+    margin-bottom:10px;
+  }
+  .hero-omset .value{
+    font-family:'Oswald',sans-serif;
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight:700;
+    color: var(--gold-bright);
+    line-height:1.1;
+    margin-bottom: 14px;
+  }
+  .vs-target-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:14px;
+    flex-wrap:wrap;
+  }
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.03em;
+  }
+  .badge.tercapai{ background: rgba(76,154,91,0.16); color: var(--green); }
+  .badge.kurang{ background: rgba(192,57,43,0.16); color: var(--red); }
+
+  .hero-margin .row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .hero-margin .row:last-child{ border-bottom:none; }
+  .hero-margin .row .k{ color: var(--text-muted); font-size:13px; }
+  .hero-margin .row .v{ font-weight:700; font-size:16px; }
+  .hero-margin .v.gold{ color: var(--gold-bright); }
+
+  /* ---------- GRID SEKUNDER ---------- */
+  .secondary-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:16px;
+  }
+  @media (max-width:760px){
+    .secondary-grid{ grid-template-columns: 1fr; }
+  }
+  .mini-card .label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color: var(--text-muted);
+    margin-bottom:8px;
+  }
+  .mini-card .value{
+    font-family:'Oswald',sans-serif;
+    font-size:22px;
+    font-weight:600;
+    color: var(--text);
+  }
+  .mini-card .sub{
+    font-size:12px;
+    color: var(--text-muted);
+    margin-top:6px;
+  }
+  .mini-card .sub.up{ color: var(--green); }
+  .mini-card .sub.down{ color: var(--red); }
+
+  /* ---------- STATES ---------- */
+  #loading, #error, #empty{
+    text-align:center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    font-size:14px;
+  }
+  #error{ color: var(--red); display:none; }
+  #empty{ display:none; }
+  .hidden{ display:none !important; }
+
+  footer{
+    text-align:center;
+    color: var(--text-muted);
+    font-size:12px;
+    padding: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div class="brand-text">
+        <p class="eyebrow">Kubah Emas</p>
+        <h1>Dashboard Tim Toko</h1>
+      </div>
+    </div>
+    <div class="month-picker">
+      <label for="month-select">Periode</label>
+      <select id="month-select"></select>
+    </div>
+  </div>
+  <div class="dome-divider">
+    <svg viewBox="0 0 1180 40" preserveAspectRatio="none">
+      <path d="M0,38 Q295,-10 590,20 T1180,38" fill="none" stroke="url(#g)" stroke-width="2"/>
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#8a6a1f" stop-opacity="0"/>
+          <stop offset="50%" stop-color="#e8b923"/>
+          <stop offset="100%" stop-color="#8a6a1f" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+</header>
+
+<main>
+  <div id="loading">Memuat data…</div>
+  <div id="error"></div>
+  <div id="empty">Belum ada data untuk bulan ini.</div>
+
+  <div id="content" class="hidden">
+    <div class="status-line">
+      <h2>Ringkasan Bulan — <span id="bulan-label">-</span></h2>
+    </div>
+
+    <div class="hero-grid">
+      <div class="card hero-omset">
+        <div class="label">Total Omset</div>
+        <div class="value" id="omset-value">Rp 0</div>
+        <div class="vs-target-row">
+          <span class="badge" id="omset-badge">-</span>
+          <span id="omset-selisih-text" style="color:var(--text-muted)"></span>
+        </div>
+      </div>
+
+      <div class="card hero-margin">
+        <div class="row">
+          <span class="k">Total Margin</span>
+          <span class="v gold" id="margin-value">Rp 0</span>
+        </div>
+        <div class="row">
+          <span class="k">Margin %</span>
+          <span class="v" id="margin-pct-value">0%</span>
+        </div>
+        <div class="row">
+          <span class="k">Target Margin</span>
+          <span class="v" id="margin-target-value">Rp 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="secondary-grid">
+      <div class="card mini-card">
+        <div class="label">vs Bulan Lalu (Omset)</div>
+        <div class="value" id="mom-omset-value">-</div>
+        <div class="sub" id="mom-omset-sub"></div>
+      </div>
+      <div class="card mini-card">
+        <div class="label">Rata-rata Omset / Hari Aktif</div>
+        <div class="value" id="rata-harian-value">Rp 0</div>
+        <div class="sub" id="rata-harian-sub"></div>
+      </div>
+      <div class="card mini-card">
+        <div class="label">Status Margin vs Target</div>
+        <div class="value" id="margin-status-value">-</div>
+        <div class="sub" id="margin-status-sub"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>Dashboard Tim Toko · Kubah Emas · data live dari Google Sheets</footer>
+
+<script>
+  // GANTI dengan URL /exec hasil deploy Apps Script kamu
+  const API_URL = 'PASTE_URL_APPS_SCRIPT_DISINI';
+
+  const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
+                       'Juli','Agustus','September','Oktober','November','Desember'];
+
+  const $ = (id) => document.getElementById(id);
+
+  function formatRupiah(n){
+    return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+  }
+  function formatPct(n){
+    return (n*100).toFixed(1).replace('.0','') + '%';
+  }
+
+  function showState(state){
+    $('loading').classList.add('hidden');
+    $('error').classList.add('hidden');
+    $('empty').classList.add('hidden');
+    $('content').classList.add('hidden');
+    if(state === 'loading') $('loading').classList.remove('hidden');
+    if(state === 'error') $('error').classList.remove('hidden');
+    if(state === 'empty') $('empty').classList.remove('hidden');
+    if(state === 'content') $('content').classList.remove('hidden');
+  }
+
+  async function apiCall(params){
+    const url = API_URL + '?' + new URLSearchParams(params).toString();
+    const res = await fetch(url);
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'Gagal mengambil data');
+    return json.data;
+  }
+
+  async function initMonthSelector(){
+    showState('loading');
+    try{
+      const { availableMonths } = await apiCall({ action: 'months' });
+      const select = $('month-select');
+      select.innerHTML = '';
+      MONTH_NAMES.forEach((name, i) => {
+        const monthNum = i + 1;
+        const opt = document.createElement('option');
+        opt.value = monthNum;
+        opt.textContent = name;
+        if(!availableMonths.includes(monthNum)){
+          opt.disabled = true;
+          opt.textContent += ' (belum ada data)';
+        }
+        select.appendChild(opt);
+      });
+
+      if(availableMonths.length === 0){
+        showState('empty');
+        return;
+      }
+
+      // pilih bulan terakhir yang ada datanya sebagai default
+      const defaultMonth = availableMonths[availableMonths.length - 1];
+      select.value = defaultMonth;
+      await loadRingkasan(defaultMonth);
+
+      select.addEventListener('change', (e) => loadRingkasan(parseInt(e.target.value, 10)));
+    } catch(err){
+      $('error').textContent = 'Gagal memuat daftar bulan: ' + err.message;
+      showState('error');
+    }
+  }
+
+  async function loadRingkasan(month){
+    showState('loading');
+    try{
+      const d = await apiCall({ action: 'ringkasan', month });
+      renderRingkasan(d);
+      showState('content');
+    } catch(err){
+      $('error').textContent = 'Gagal memuat ringkasan: ' + err.message;
+      showState('error');
+    }
+  }
+
+  function renderRingkasan(d){
+    $('bulan-label').textContent = d.bulan;
+
+    $('omset-value').textContent = formatRupiah(d.omset);
+    const omsetBadge = $('omset-badge');
+    omsetBadge.textContent = d.omsetStatus === 'TERCAPAI' ? 'Tercapai' : 'Kurang dari Target';
+    omsetBadge.className = 'badge ' + (d.omsetStatus === 'TERCAPAI' ? 'tercapai' : 'kurang');
+    $('omset-selisih-text').textContent =
+      (d.omsetSelisih >= 0 ? '+' : '') + formatRupiah(d.omsetSelisih) + ' dari target ' + formatRupiah(d.omsetTarget);
+
+    $('margin-value').textContent = formatRupiah(d.margin);
+    $('margin-pct-value').textContent = formatPct(d.marginPct);
+    $('margin-target-value').textContent = formatRupiah(d.marginTarget);
+
+    if(d.bulanLalu){
+      $('mom-omset-value').textContent = formatRupiah(d.bulanLalu.omsetSelisihMoM);
+      const pct = d.bulanLalu.omsetSelisihMoMPct;
+      const sub = $('mom-omset-sub');
+      if(pct !== null){
+        sub.textContent = (pct >= 0 ? '▲ ' : '▼ ') + formatPct(Math.abs(pct)) + ' dari bulan sebelumnya';
+        sub.className = 'sub ' + (pct >= 0 ? 'up' : 'down');
+      } else {
+        sub.textContent = 'Data bulan lalu tidak tersedia';
+        sub.className = 'sub';
+      }
+    } else {
+      $('mom-omset-value').textContent = '-';
+      $('mom-omset-sub').textContent = 'Ini bulan pertama data';
+      $('mom-omset-sub').className = 'sub';
+    }
+
+    $('rata-harian-value').textContent = formatRupiah(d.rataOmsetPerHari);
+    $('rata-harian-sub').textContent = d.hariReal + ' hari aktif';
+
+    $('margin-status-value').textContent = d.marginStatus === 'TERCAPAI' ? 'Tercapai' : 'Kurang';
+    const marginSub = $('margin-status-sub');
+    marginSub.textContent = (d.marginSelisih >= 0 ? '+' : '') + formatRupiah(d.marginSelisih) + ' dari target';
+    marginSub.className = 'sub ' + (d.marginSelisih >= 0 ? 'up' : 'down');
+  }
+
+  initMonthSelector();
+</script>
+
+</body>
+</html>
