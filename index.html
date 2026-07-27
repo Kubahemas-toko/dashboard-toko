@@ -234,6 +234,47 @@
   .mini-card .sub.up{ color: var(--green); }
   .mini-card .sub.down{ color: var(--red); }
 
+  /* ---------- SECTION TREN ---------- */
+  .section-header{
+    margin: 40px 0 16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .section-header h2{
+    font-family:'Oswald',sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color: var(--text-muted);
+    margin:0;
+  }
+  .section-header .rule{
+    flex:1;
+    height:1px;
+    background: linear-gradient(90deg, var(--card-border), transparent);
+  }
+
+  .tren-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:760px){
+    .tren-grid{ grid-template-columns: 1fr; }
+  }
+  .chart-card .label{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color: var(--text-muted);
+    margin-bottom:4px;
+  }
+  .chart-card .label span{ color: var(--gold-bright); text-transform:none; letter-spacing:0; }
+  .chart-wrap{ margin-top:14px; }
+  .chart-wrap svg{ overflow: visible; }
+
   /* ---------- STATES ---------- */
   #loading, #error, #empty{
     text-align:center;
@@ -335,6 +376,22 @@
         <div class="sub" id="margin-status-sub"></div>
       </div>
     </div>
+
+    <div class="section-header">
+      <h2>Tren</h2>
+      <div class="rule"></div>
+    </div>
+
+    <div class="tren-grid">
+      <div class="card chart-card">
+        <div class="label">Omset per Minggu — <span id="tren-bulan-label"></span></div>
+        <div id="chart-minggu" class="chart-wrap"></div>
+      </div>
+      <div class="card chart-card">
+        <div class="label">Tren Omset Sepanjang Tahun 2026</div>
+        <div id="chart-tahun" class="chart-wrap"></div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -401,23 +458,27 @@
       // pilih bulan terakhir yang ada datanya sebagai default
       const defaultMonth = availableMonths[availableMonths.length - 1];
       select.value = defaultMonth;
-      await loadRingkasan(defaultMonth);
+      await loadDashboard(defaultMonth);
 
-      select.addEventListener('change', (e) => loadRingkasan(parseInt(e.target.value, 10)));
+      select.addEventListener('change', (e) => loadDashboard(parseInt(e.target.value, 10)));
     } catch(err){
       $('error').textContent = 'Gagal memuat daftar bulan: ' + err.message;
       showState('error');
     }
   }
 
-  async function loadRingkasan(month){
+  async function loadDashboard(month){
     showState('loading');
     try{
-      const d = await apiCall({ action: 'ringkasan', month });
-      renderRingkasan(d);
+      const [ringkasan, tren] = await Promise.all([
+        apiCall({ action: 'ringkasan', month }),
+        apiCall({ action: 'tren', month })
+      ]);
+      renderRingkasan(ringkasan);
+      renderTren(tren);
       showState('content');
     } catch(err){
-      $('error').textContent = 'Gagal memuat ringkasan: ' + err.message;
+      $('error').textContent = 'Gagal memuat dashboard: ' + err.message;
       showState('error');
     }
   }
@@ -460,6 +521,84 @@
     const marginSub = $('margin-status-sub');
     marginSub.textContent = (d.marginSelisih >= 0 ? '+' : '') + formatRupiah(d.marginSelisih) + ' dari target';
     marginSub.className = 'sub ' + (d.marginSelisih >= 0 ? 'up' : 'down');
+  }
+
+  function formatRupiahShort(n){
+    const abs = Math.abs(n);
+    if(abs >= 1e9) return (n/1e9).toFixed(1).replace('.0','') + 'M';
+    if(abs >= 1e6) return (n/1e6).toFixed(1).replace('.0','') + 'jt';
+    if(abs >= 1e3) return (n/1e3).toFixed(0) + 'rb';
+    return String(Math.round(n));
+  }
+
+  function renderTren(t){
+    $('tren-bulan-label').textContent = t.bulan;
+    renderBarChart('chart-minggu', t.perMinggu);
+    renderLineChart('chart-tahun', t.perBulanTahun);
+  }
+
+  function renderBarChart(elId, data){
+    const w = 560, h = 220, padL = 8, padR = 8, padB = 28, padT = 26;
+    const max = Math.max.apply(null, data.map(d => d.omset).concat([1]));
+    const barW = (w - padL - padR) / Math.max(data.length, 1);
+
+    const bars = data.map((d, i) => {
+      const bh = max > 0 ? (d.omset / max) * (h - padT - padB) : 0;
+      const x = padL + i * barW + barW * 0.18;
+      const bw = barW * 0.64;
+      const y = h - padB - bh;
+      return `
+        <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="4" fill="url(#barGrad)"/>
+        <text x="${(x+bw/2).toFixed(1)}" y="${h - padB + 16}" text-anchor="middle" font-size="11" fill="var(--text-muted)">Pekan ${d.pekan}</text>
+        <text x="${(x+bw/2).toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" font-size="10" fill="var(--gold-bright)">${formatRupiahShort(d.omset)}</text>
+      `;
+    }).join('');
+
+    document.getElementById(elId).innerHTML = data.length ? `
+      <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
+        <defs>
+          <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--gold-bright)"/>
+            <stop offset="100%" stop-color="var(--gold-dim)"/>
+          </linearGradient>
+        </defs>
+        ${bars}
+      </svg>
+    ` : '<p style="color:var(--text-muted);font-size:13px;">Belum ada data pekan untuk bulan ini.</p>';
+  }
+
+  function renderLineChart(elId, data){
+    const w = 560, h = 220, padL = 8, padR = 8, padB = 28, padT = 26;
+    const max = Math.max.apply(null, data.map(d => d.omset).concat([1]));
+    const stepX = (w - padL - padR) / Math.max(data.length - 1, 1);
+
+    const points = data.map((d, i) => ({
+      x: padL + i * stepX,
+      y: h - padB - (max > 0 ? (d.omset / max) * (h - padT - padB) : 0),
+      d
+    }));
+
+    const pathD = points
+      .filter(p => p.d.omset > 0)
+      .map((p, i, arr) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1))
+      .join(' ');
+
+    const dots = points.map(p => {
+      const active = p.d.omset > 0;
+      return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="${active ? 'var(--gold-bright)' : 'var(--card-border)'}"/>`;
+    }).join('');
+
+    const labels = points.map(p =>
+      `<text x="${p.x.toFixed(1)}" y="${h - 8}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${p.d.bulanSingkat}</text>`
+    ).join('');
+
+    document.getElementById(elId).innerHTML = `
+      <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
+        <path d="${pathD}" fill="none" stroke="var(--gold)" stroke-width="2"/>
+        ${dots}
+        ${labels}
+      </svg>
+    `;
   }
 
   initMonthSelector();
