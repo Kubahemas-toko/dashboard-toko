@@ -115,6 +115,18 @@
     border-bottom:1px solid var(--card-border); color: var(--text-muted);
   }
   .segmen-card .kategori-list .row span:last-child{ color: var(--text); font-weight:600; }
+
+  .kategori-chart-box{ height: 300px; margin-bottom: 8px; }
+  .top5-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-top:20px; }
+  @media (max-width:900px){ .top5-grid{ grid-template-columns: 1fr; } }
+  .top5-card .top5-title{ font-family:'Oswald',sans-serif; font-size:14px; font-weight:600; margin-bottom:14px; color: var(--text); }
+  .top5-card .row{
+    display:flex; justify-content:space-between; gap:10px; padding:8px 0;
+    border-bottom:1px solid var(--card-border); font-size:13px;
+  }
+  .top5-card .row:last-child{ border-bottom:none; }
+  .top5-card .row .nama{ color: var(--text-muted); }
+  .top5-card .row .val{ color: var(--text); font-weight:600; white-space:nowrap; }
   .chart-card .label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color: var(--text-muted); margin-bottom:14px; }
   .chart-card .label span{ color: var(--text); font-weight:600; text-transform:none; letter-spacing:0; }
   .chart-box{ height: 320px; position: relative; }
@@ -223,6 +235,13 @@
 
     <div class="section-header"><h2>Segmentasi Customer</h2><div class="rule"></div></div>
     <div class="segmen-grid" id="segmen-grid"></div>
+
+    <div class="section-header"><h2>Penjualan per Kategori</h2><div class="rule"></div></div>
+    <div class="card chart-card">
+      <div class="label">Kontribusi Omset per Kategori Barang</div>
+      <div class="kategori-chart-box"><canvas id="chart-kategori"></canvas></div>
+    </div>
+    <div class="top5-grid" id="top5-grid"></div>
   </div>
 </main>
 
@@ -306,6 +325,7 @@
       renderTren(d.tren, 'ALL');
       renderRingkasan(d.ringkasan);
       renderSegmentasi(d.segmentasi);
+      renderKategori(d.kategori);
       showState('content');
       window._lastTren = d.tren;
     } catch(err){
@@ -569,6 +589,63 @@
         });
       });
     });
+  }
+
+  function renderKategori(data){
+    destroyChart('chart-kategori');
+    const labels = data.perKategori.map(k => k.kategori);
+    charts['chart-kategori'] = new Chart($('chart-kategori').getContext('2d'), {
+      data: {
+        labels,
+        datasets: [
+          {
+            type: 'bar', label: '% Kontribusi', yAxisID: 'y1',
+            data: data.perKategori.map(k => k.pct * 100),
+            backgroundColor: COLOR_GOLD + 'aa', borderRadius: 4, maxBarThickness: 50, order: 2
+          },
+          {
+            type: 'line', label: 'Omset', yAxisID: 'y',
+            data: data.perKategori.map(k => k.omset),
+            borderColor: COLOR_STEEL, backgroundColor: COLOR_STEEL,
+            tension: 0.3, pointRadius: 4, pointBackgroundColor: COLOR_STEEL, order: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { color: COLOR_TEXT, usePointStyle: true, boxWidth: 8 } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ctx.dataset.label === 'Omset'
+                ? 'Omset: ' + formatRupiah(ctx.parsed.y)
+                : 'Kontribusi: ' + ctx.parsed.y.toFixed(1) + '%'
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: COLOR_TEXT } },
+          y: { position: 'left', grid: { color: COLOR_GRID }, ticks: { color: COLOR_MUTED, callback: (v) => formatRupiahShort(v) } },
+          y1: { position: 'right', grid: { display: false }, ticks: { color: COLOR_MUTED, callback: (v) => v + '%' } }
+        }
+      }
+    });
+
+    const grid = $('top5-grid');
+    grid.innerHTML = `
+      <div class="card top5-card">
+        <div class="top5-title">Top 5 Populer</div>
+        ${data.top5Populer.map(i => `<div class="row"><span class="nama">${i.nama}</span><span class="val">${i.jum.toLocaleString('id-ID')} unit</span></div>`).join('')}
+      </div>
+      <div class="card top5-card">
+        <div class="top5-title">Top 5 Omset</div>
+        ${data.top5Omset.map(i => `<div class="row"><span class="nama">${i.nama}</span><span class="val">${formatRupiah(i.omset)}</span></div>`).join('')}
+      </div>
+      <div class="card top5-card">
+        <div class="top5-title">Top 5 Margin</div>
+        ${data.top5Margin.map(i => `<div class="row"><span class="nama">${i.nama}</span><span class="val">${formatRupiah(i.margin)}</span></div>`).join('')}
+      </div>
+    `;
   }
 
   initMonthSelector();
