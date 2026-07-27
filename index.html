@@ -6,6 +6,7 @@
 <title>Dashboard Tim Toko — Kubah Emas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
   :root{
     --bg: #0c0c0e;
@@ -14,40 +15,29 @@
     --card-border-hover: #3d3d44;
     --gold: #f2c230;
     --gold-bright: #ffd85c;
-    --gold-dim: #8a6a1a;
     --steel: #7fa8c9;
     --steel-bright: #a9c8e0;
-    --steel-dim: #3f5c73;
-    --text: #eef0f2;
-    --text-muted: #8f929a;
+    --text: #ffffff;
+    --text-muted: #9a9da4;
     --red: #e5484d;
     --green: #4caf7d;
   }
-
   *{ box-sizing:border-box; }
-
   body{
     margin:0;
-    background:
-      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(242,194,48,0.09), transparent 55%),
-      radial-gradient(ellipse 700px 400px at 90% 10%, rgba(127,168,201,0.07), transparent 55%),
-      var(--bg);
+    background: var(--bg);
     color: var(--text);
     font-family:'Inter',sans-serif;
     min-height:100vh;
   }
 
-  /* ---------- HEADER ---------- */
   header{ padding: 32px 24px 0; max-width: 1180px; margin: 0 auto; }
   .topbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
   .brand{ display:flex; align-items:center; gap:14px; }
-  .brand-mark{
-    width:44px; height:44px; border-radius:50%;
-    box-shadow: 0 0 18px rgba(232,185,35,0.35);
-    flex-shrink:0; object-fit: cover;
-  }
+  .brand-mark{ width:44px; height:44px; border-radius:50%; box-shadow: 0 0 18px rgba(242,194,48,0.3); flex-shrink:0; object-fit:cover; }
   .brand-text .eyebrow{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; color: var(--text-muted); margin:0 0 2px; }
-  .brand-text h1{ font-family:'Oswald',sans-serif; font-weight:600; font-size:22px; letter-spacing:.01em; margin:0; color: var(--gold-bright); }
+  .brand-text h1{ font-family:'Oswald',sans-serif; font-weight:600; font-size:22px; margin:0; color: var(--text); }
+  .brand-text h1 .accent{ color: var(--gold); }
 
   .filters{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
   .filter-group{ display:flex; align-items:center; gap:10px; }
@@ -58,69 +48,42 @@
     font-size:14px; font-weight:600; cursor:pointer;
   }
   select:focus-visible{ outline: 2px solid var(--gold); outline-offset: 2px; }
-  select option:disabled{ color:#5a5340; }
+  select option:disabled{ color:#5a5a5f; }
 
-  .corrugated-strip{
-    height: 5px;
-    margin-top: 18px;
-    border-radius: 3px;
-    background: repeating-linear-gradient(
-      135deg,
-      var(--steel-dim) 0px, var(--steel-dim) 2px,
-      transparent 2px, transparent 9px
-    );
-    opacity: 0.55;
-  }
-
-  .dome-divider{ width:100%; height:40px; margin-top:8px; overflow:hidden; }
-  .dome-divider svg{ display:block; width:100%; height:100%; }
+  .header-rule{ height:2px; margin-top:20px; background: linear-gradient(90deg, var(--gold), transparent 60%); border-radius:2px; }
 
   main{ max-width: 1180px; margin: 0 auto; padding: 8px 24px 60px; }
 
   .status-line{ display:flex; align-items:baseline; gap:10px; margin: 22px 0 6px; flex-wrap:wrap; }
-  .status-line h2{
-    font-family:'Oswald',sans-serif; font-size: 15px; font-weight: 500;
-    letter-spacing:.06em; text-transform:uppercase; color: var(--text-muted); margin:0;
-  }
+  .status-line h2{ font-family:'Oswald',sans-serif; font-size: 15px; font-weight: 500; letter-spacing:.06em; text-transform:uppercase; color: var(--text-muted); margin:0; }
   #bulan-label{ color: var(--text); font-weight:700; }
   .pekan-note{ font-size:12px; color: var(--text-muted); margin: 0 0 20px; font-style:italic; }
 
   .card{
-    background: linear-gradient(160deg, var(--card), #191408);
+    background: var(--card);
     border: 1px solid var(--card-border);
     border-radius: 14px;
     padding: 24px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.02);
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    transition: border-color .18s ease;
   }
-  .card:hover{
-    transform: translateY(-2px);
-    border-color: var(--card-border-hover);
-    box-shadow: 0 14px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03);
-  }
+  .card:hover{ border-color: var(--card-border-hover); }
 
-  /* ---------- GAUGE CARDS (Omset & Margin vs Target) ---------- */
   .gauge-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-bottom: 18px; }
   @media (max-width:760px){ .gauge-grid{ grid-template-columns: 1fr; } }
-
-  .gauge-card .label{
-    font-size:12px; text-transform:uppercase; letter-spacing:.1em; color: var(--text-muted); margin-bottom:16px;
-  }
+  .gauge-card .label{ font-size:12px; text-transform:uppercase; letter-spacing:.1em; color: var(--text-muted); margin-bottom:16px; }
   .gauge-row{ display:flex; align-items:center; gap:20px; }
-  .gauge-wrap{ flex-shrink:0; }
-  .gauge-value-block{ flex:1; min-width:0; }
-  .gauge-value-block .value{
-    font-family:'Oswald',sans-serif; font-size: clamp(24px, 4vw, 32px); font-weight:700;
-    line-height:1.1; margin-bottom: 8px; word-break:break-word;
+  .gauge-canvas-wrap{ position:relative; width:110px; height:110px; flex-shrink:0; }
+  .gauge-canvas-wrap .gauge-pct{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald',sans-serif; font-size:20px; font-weight:700; color: var(--text);
   }
-  .gauge-value-block .value.omset-color{ color: var(--text); }
-  .gauge-value-block .value.margin-color{ color: var(--steel-bright); }
+  .gauge-value-block{ flex:1; min-width:0; }
+  .gauge-value-block .value{ font-family:'Oswald',sans-serif; font-size: clamp(24px, 4vw, 32px); font-weight:700; line-height:1.1; margin-bottom: 8px; color: var(--text); }
   .gauge-value-block .sub{ font-size:13px; color: var(--text-muted); }
   .gauge-value-block .sub.up{ color: var(--green); }
   .gauge-value-block .sub.down{ color: var(--red); }
   .gauge-value-block .sub2{ font-size:12px; color: var(--text-muted); margin-top:4px; }
 
-  /* ---------- GRID SEKUNDER ---------- */
   .secondary-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; }
   @media (max-width:760px){ .secondary-grid{ grid-template-columns: 1fr; } }
   .mini-card .label{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color: var(--text-muted); margin-bottom:8px; }
@@ -129,28 +92,15 @@
   .mini-card .sub.up{ color: var(--green); }
   .mini-card .sub.down{ color: var(--red); }
 
-  /* ---------- SECTION TREN ---------- */
   .section-header{ margin: 40px 0 16px; display:flex; align-items:center; gap:10px; }
-  .section-header h2{
-    font-family:'Oswald',sans-serif; font-size: 15px; font-weight: 500;
-    letter-spacing:.06em; text-transform:uppercase; color: var(--text-muted); margin:0;
-  }
-  .section-header .rule{
-    flex:1; height:5px;
-    background: repeating-linear-gradient(135deg, var(--card-border) 0px, var(--card-border) 2px, transparent 2px, transparent 9px);
-    opacity:0.7;
-  }
+  .section-header h2{ font-family:'Oswald',sans-serif; font-size: 15px; font-weight: 500; letter-spacing:.06em; text-transform:uppercase; color: var(--text-muted); margin:0; }
+  .section-header .rule{ flex:1; height:1px; background: var(--card-border); }
 
   .tren-grid{ display:grid; grid-template-columns: 1fr; gap:20px; }
-  .chart-card .label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color: var(--text-muted); margin-bottom:4px; }
+  .chart-card .label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color: var(--text-muted); margin-bottom:14px; }
   .chart-card .label span{ color: var(--text); font-weight:600; text-transform:none; letter-spacing:0; }
-  .chart-wrap{ margin-top:14px; }
-  .chart-wrap svg{ overflow: visible; display:block; }
-  .chart-legend{ display:flex; gap:16px; margin-bottom:6px; }
-  .chart-legend .item{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
-  .chart-legend .dot{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+  .chart-box{ height: 320px; position: relative; }
 
-  /* ---------- STATES ---------- */
   #loading, #error, #empty{ text-align:center; padding: 60px 20px; color: var(--text-muted); font-size:14px; }
   #error{ color: var(--red); }
   .hidden{ display:none !important; }
@@ -166,7 +116,7 @@
       <img class="brand-mark" src="logo.png" alt="Logo Kubah Emas">
       <div class="brand-text">
         <p class="eyebrow">Kubah Emas</p>
-        <h1>Dashboard Tim Toko</h1>
+        <h1>Dashboard <span class="accent">Tim Toko</span></h1>
       </div>
     </div>
     <div class="filters">
@@ -180,19 +130,7 @@
       </div>
     </div>
   </div>
-  <div class="corrugated-strip" aria-hidden="true"></div>
-  <div class="dome-divider">
-    <svg viewBox="0 0 1180 40" preserveAspectRatio="none">
-      <path d="M0,38 Q295,-10 590,20 T1180,38" fill="none" stroke="url(#g)" stroke-width="2"/>
-      <defs>
-        <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#8a6a1f" stop-opacity="0"/>
-          <stop offset="50%" stop-color="#e8b923"/>
-          <stop offset="100%" stop-color="#8a6a1f" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-    </svg>
-  </div>
+  <div class="header-rule"></div>
 </header>
 
 <main>
@@ -210,20 +148,19 @@
       <div class="card gauge-card">
         <div class="label">Total Omset</div>
         <div class="gauge-row">
-          <div class="gauge-wrap" id="gauge-omset"></div>
+          <div class="gauge-canvas-wrap"><canvas id="gauge-omset"></canvas><div class="gauge-pct" id="gauge-omset-pct">-</div></div>
           <div class="gauge-value-block">
-            <div class="value omset-color" id="omset-value">Rp 0</div>
+            <div class="value" id="omset-value">Rp 0</div>
             <div class="sub" id="omset-selisih-text"></div>
           </div>
         </div>
       </div>
-
       <div class="card gauge-card">
         <div class="label">Total Margin</div>
         <div class="gauge-row">
-          <div class="gauge-wrap" id="gauge-margin"></div>
+          <div class="gauge-canvas-wrap"><canvas id="gauge-margin"></canvas><div class="gauge-pct" id="gauge-margin-pct">-</div></div>
           <div class="gauge-value-block">
-            <div class="value margin-color" id="margin-value">Rp 0</div>
+            <div class="value" id="margin-value">Rp 0</div>
             <div class="sub" id="margin-selisih-text"></div>
             <div class="sub2" id="margin-pct-text"></div>
           </div>
@@ -254,19 +191,15 @@
     <div class="tren-grid">
       <div class="card chart-card">
         <div class="label">Omset &amp; Margin per Minggu — <span id="tren-bulan-label"></span></div>
-        <div class="chart-legend">
-          <span class="item"><span class="dot" style="background:var(--gold-bright)"></span>Omset</span>
-          <span class="item"><span class="dot" style="background:var(--steel)"></span>Margin</span>
-        </div>
-        <div id="chart-minggu" class="chart-wrap"></div>
+        <div class="chart-box"><canvas id="chart-minggu"></canvas></div>
       </div>
       <div class="card chart-card">
         <div class="label">Tren Omset Harian — <span id="harian-bulan-label"></span></div>
-        <div id="chart-harian" class="chart-wrap"></div>
+        <div class="chart-box"><canvas id="chart-harian"></canvas></div>
       </div>
       <div class="card chart-card">
         <div class="label">Tren Omset Sepanjang Tahun 2026</div>
-        <div id="chart-tahun" class="chart-wrap"></div>
+        <div class="chart-box"><canvas id="chart-tahun"></canvas></div>
       </div>
     </div>
   </div>
@@ -276,12 +209,20 @@
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbza-u7Cyb9D-ehx5I0XpEYlwcI_L_6wnXJeQRdnutrtyNqxOy-zHE7d4HEH5nbLsTX4Wg/exec';
+  const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const COLOR_GOLD = '#f2c230';
+  const COLOR_STEEL = '#7fa8c9';
+  const COLOR_MUTED = '#9a9da4';
+  const COLOR_GRID = '#2b2b30';
+  const COLOR_TEXT = '#ffffff';
 
-  const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
-                       'Juli','Agustus','September','Oktober','November','Desember'];
+  Chart.defaults.color = COLOR_MUTED;
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.borderColor = COLOR_GRID;
 
   const $ = (id) => document.getElementById(id);
   let currentMonth = null;
+  let charts = {};
 
   function formatRupiah(n){ return 'Rp ' + Math.round(n).toLocaleString('id-ID'); }
   function formatPct(n){ return (n*100).toFixed(1).replace('.0','') + '%'; }
@@ -323,13 +264,10 @@
         }
         select.appendChild(opt);
       });
-
       if(availableMonths.length === 0){ showState('empty'); return; }
-
       const defaultMonth = availableMonths[availableMonths.length - 1];
       select.value = defaultMonth;
       await loadDashboard(defaultMonth);
-
       select.addEventListener('change', (e) => loadDashboard(parseInt(e.target.value, 10)));
       $('pekan-select').addEventListener('change', (e) => loadPekan(e.target.value));
     } catch(err){
@@ -390,8 +328,8 @@
     $('margin-pct-text').textContent = 'Margin ' + formatPct(d.marginPct) + ' dari omset';
 
     if(d.isPekanView){
-      renderGauge('gauge-omset', 100, 'var(--gold-bright)', true);
-      renderGauge('gauge-margin', 100, 'var(--steel)', true);
+      renderGaugeChart('gauge-omset', 'gauge-omset-pct', null, COLOR_GOLD);
+      renderGaugeChart('gauge-margin', 'gauge-margin-pct', null, COLOR_STEEL);
       $('omset-selisih-text').textContent = 'Total Omset Pekan ' + d.pekan;
       $('omset-selisih-text').className = 'sub';
       $('margin-selisih-text').textContent = 'Total Margin Pekan ' + d.pekan;
@@ -401,15 +339,13 @@
 
     const omsetPct = d.omsetTarget > 0 ? (d.omset / d.omsetTarget) * 100 : 0;
     const marginPct2 = d.marginTarget > 0 ? (d.margin / d.marginTarget) * 100 : 0;
-    renderGauge('gauge-omset', omsetPct, 'var(--gold-bright)', false);
-    renderGauge('gauge-margin', marginPct2, 'var(--steel)', false);
+    renderGaugeChart('gauge-omset', 'gauge-omset-pct', omsetPct, COLOR_GOLD);
+    renderGaugeChart('gauge-margin', 'gauge-margin-pct', marginPct2, COLOR_STEEL);
 
-    $('omset-selisih-text').textContent =
-      (d.omsetSelisih >= 0 ? '+' : '') + formatRupiah(d.omsetSelisih) + ' dari target ' + formatRupiah(d.omsetTarget);
+    $('omset-selisih-text').textContent = (d.omsetSelisih >= 0 ? '+' : '') + formatRupiah(d.omsetSelisih) + ' dari target ' + formatRupiah(d.omsetTarget);
     $('omset-selisih-text').className = 'sub ' + (d.omsetSelisih >= 0 ? 'up' : 'down');
 
-    $('margin-selisih-text').textContent =
-      (d.marginSelisih >= 0 ? '+' : '') + formatRupiah(d.marginSelisih) + ' dari target ' + formatRupiah(d.marginTarget);
+    $('margin-selisih-text').textContent = (d.marginSelisih >= 0 ? '+' : '') + formatRupiah(d.marginSelisih) + ' dari target ' + formatRupiah(d.marginTarget);
     $('margin-selisih-text').className = 'sub ' + (d.marginSelisih >= 0 ? 'up' : 'down');
 
     if(d.bulanLalu){
@@ -438,228 +374,135 @@
     marginSub.className = 'sub ' + (d.marginSelisih >= 0 ? 'up' : 'down');
   }
 
-  // ---------- GAUGE DONUT (persentase capaian vs target) ----------
-  function renderGauge(elId, pct, color, isNeutral){
-    const size = 110, stroke = 12, r = (size - stroke) / 2, c = 2 * Math.PI * r;
-    const clamped = Math.max(0, Math.min(pct, 100));
-    const offset = c - (clamped / 100) * c;
-    const trackColor = 'var(--card-border)';
-    const textColor = isNeutral ? 'var(--text-muted)' : 'var(--text)';
-    const displayText = isNeutral ? '—' : Math.round(pct) + '%';
-    document.getElementById(elId).innerHTML = `
-      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${trackColor}" stroke-width="${stroke}"/>
-        ${isNeutral ? '' : `<circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}"
-          stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"
-          transform="rotate(-90 ${size/2} ${size/2})"/>`}
-        <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="700"
-          fill="${textColor}" font-family="Oswald, sans-serif">${displayText}</text>
-      </svg>
-    `;
+  function destroyChart(id){
+    if(charts[id]){ charts[id].destroy(); delete charts[id]; }
+  }
+
+  function renderGaugeChart(canvasId, labelId, pct, color){
+    destroyChart(canvasId);
+    const isNeutral = pct === null;
+    const clamped = isNeutral ? 0 : Math.max(0, Math.min(pct, 100));
+    $(labelId).textContent = isNeutral ? '—' : Math.round(pct) + '%';
+    const ctx = $(canvasId).getContext('2d');
+    charts[canvasId] = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: isNeutral ? [1] : [clamped, 100 - clamped],
+          backgroundColor: isNeutral ? [COLOR_GRID] : [color, COLOR_GRID],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        cutout: '75%',
+        rotation: -90,
+        circumference: isNeutral ? 360 : 360,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        animation: { duration: 400 }
+      }
+    });
   }
 
   function renderTren(t, highlightPekan){
     $('tren-bulan-label').textContent = t.bulan;
     $('harian-bulan-label').textContent = t.bulan;
-    renderGroupedBarChart('chart-minggu', t.perMinggu, highlightPekan);
-    renderDailyTrendChart('chart-harian', t.perHari);
-    renderAreaLineChart('chart-tahun', t.perBulanTahun);
+    renderMingguChart(t.perMinggu, highlightPekan);
+    renderHarianChart(t.perHari);
+    renderTahunChart(t.perBulanTahun);
   }
 
-  // ---------- GROUPED BAR: Omset + Margin per Pekan ----------
-  function renderGroupedBarChart(elId, data, highlightPekan){
-    if(!data.length){
-      document.getElementById(elId).innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Belum ada data pekan untuk bulan ini.</p>';
-      return;
-    }
-    const w = 1000, h = 340, padL = 20, padR = 20, padB = 36, padT = 32;
-    const maxOmset = Math.max.apply(null, data.map(d => d.omset).concat([1]));
-    const maxMargin = Math.max.apply(null, data.map(d => d.margin || 0).concat([1]));
-    const max = Math.max(maxOmset, maxMargin);
-    const groupW = (w - padL - padR) / data.length;
-    const barW = groupW * 0.30;
-    const gap = groupW * 0.06;
-
-    const groups = data.map((d, i) => {
-      const groupX = padL + i * groupW;
-      const isHighlight = highlightPekan && highlightPekan !== 'ALL' && d.pekan === highlightPekan;
-      const dim = highlightPekan && highlightPekan !== 'ALL' && !isHighlight;
-      const opacity = dim ? 0.35 : 1;
-
-      const omsetH = max > 0 ? (d.omset / max) * (h - padT - padB) : 0;
-      const omsetX = groupX + groupW/2 - barW - gap/2;
-      const omsetY = h - padB - omsetH;
-
-      const marginVal = d.margin || 0;
-      const marginH = max > 0 ? (marginVal / max) * (h - padT - padB) : 0;
-      const marginX = groupX + groupW/2 + gap/2;
-      const marginY = h - padB - marginH;
-
-      return `
-        <g opacity="${opacity}">
-          <rect x="${omsetX.toFixed(1)}" y="${omsetY.toFixed(1)}" width="${barW.toFixed(1)}" height="${omsetH.toFixed(1)}" rx="3" fill="url(#omsetGrad)"/>
-          <text x="${(omsetX+barW/2).toFixed(1)}" y="${(omsetY-6).toFixed(1)}" text-anchor="middle" font-size="13" fill="var(--text)">${formatRupiahShort(d.omset)}</text>
-          <rect x="${marginX.toFixed(1)}" y="${marginY.toFixed(1)}" width="${barW.toFixed(1)}" height="${marginH.toFixed(1)}" rx="3" fill="url(#marginGradSteel)"/>
-          <text x="${(marginX+barW/2).toFixed(1)}" y="${(marginY-6).toFixed(1)}" text-anchor="middle" font-size="13" fill="var(--steel-bright)">${formatRupiahShort(marginVal)}</text>
-          <text x="${(groupX+groupW/2).toFixed(1)}" y="${h - padB + 18}" text-anchor="middle" font-size="15" fill="${isHighlight ? 'var(--text)' : 'var(--text-muted)'}" font-weight="${isHighlight ? '700' : '400'}">Pekan ${d.pekan}</text>
-        </g>
-      `;
-    }).join('');
-
-    document.getElementById(elId).innerHTML = `
-      <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
-        <defs>
-          <linearGradient id="omsetGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--gold-bright)"/>
-            <stop offset="100%" stop-color="var(--gold-dim)"/>
-          </linearGradient>
-          <linearGradient id="marginGradSteel" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--steel)"/>
-            <stop offset="100%" stop-color="var(--steel-dim)"/>
-          </linearGradient>
-        </defs>
-        ${groups}
-      </svg>
-    `;
+  function renderMingguChart(data, highlightPekan){
+    destroyChart('chart-minggu');
+    const labels = data.map(d => 'Pekan ' + d.pekan);
+    const bgOmset = data.map(d => (highlightPekan && highlightPekan !== 'ALL' && d.pekan !== highlightPekan) ? COLOR_GOLD + '55' : COLOR_GOLD);
+    const bgMargin = data.map(d => (highlightPekan && highlightPekan !== 'ALL' && d.pekan !== highlightPekan) ? COLOR_STEEL + '55' : COLOR_STEEL);
+    charts['chart-minggu'] = new Chart($('chart-minggu').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Omset', data: data.map(d => d.omset), backgroundColor: bgOmset, borderRadius: 4, maxBarThickness: 60 },
+          { label: 'Margin', data: data.map(d => d.margin || 0), backgroundColor: bgMargin, borderRadius: 4, maxBarThickness: 60 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { color: COLOR_TEXT, usePointStyle: true, boxWidth: 8 } },
+          tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + formatRupiah(ctx.parsed.y) } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: COLOR_TEXT } },
+          y: { grid: { color: COLOR_GRID }, ticks: { color: COLOR_MUTED, callback: (v) => formatRupiahShort(v) } }
+        }
+      }
+    });
   }
 
-  // ---------- SMOOTH AREA LINE: Tren Omset Tahunan ----------
-  function catmullRomPath(points){
-    if(points.length < 2) return '';
-    let d = `M ${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
-    for(let i = 0; i < points.length - 1; i++){
-      const p0 = points[i - 1] || points[i];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[i + 2] || p2;
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-      d += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
-    }
-    return d;
+  function renderHarianChart(perHari){
+    destroyChart('chart-harian');
+    if(!perHari || !perHari.length) return;
+    charts['chart-harian'] = new Chart($('chart-harian').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: perHari.map(d => d.tanggal),
+        datasets: [{
+          label: 'Omset',
+          data: perHari.map(d => d.omset),
+          borderColor: COLOR_GOLD,
+          backgroundColor: COLOR_GOLD + '30',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 2,
+          pointBackgroundColor: COLOR_GOLD
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => formatRupiah(ctx.parsed.y) } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: COLOR_MUTED, maxTicksLimit: 12 } },
+          y: { grid: { color: COLOR_GRID }, ticks: { color: COLOR_MUTED, callback: (v) => formatRupiahShort(v) } }
+        }
+      }
+    });
   }
 
-  function renderAreaLineChart(elId, data){
-    const w = 1000, h = 340, padL = 60, padR = 20, padB = 36, padT = 28;
-    const max = Math.max.apply(null, data.map(d => d.omset).concat([1]));
-    const stepX = (w - padL - padR) / Math.max(data.length - 1, 1);
-
-    const points = data.map((d, i) => ({
-      x: padL + i * stepX,
-      y: h - padB - (max > 0 ? (d.omset / max) * (h - padT - padB) : 0),
-      d
-    }));
-
-    // grid horizontal + label sumbu Y (4 garis)
-    const gridLines = [0, 0.33, 0.66, 1].map(frac => {
-      const y = h - padB - frac * (h - padT - padB);
-      const val = max * frac;
-      return `
-        <line x1="${padL}" y1="${y.toFixed(1)}" x2="${w - padR}" y2="${y.toFixed(1)}" stroke="var(--card-border)" stroke-width="1"/>
-        <text x="${padL - 8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="12" fill="var(--text-muted)">${formatRupiahShort(val)}</text>
-      `;
-    }).join('');
-
-    // hanya sambungkan garis untuk bulan yang sudah ada data (kontigu dari awal)
-    const activePoints = [];
-    for(const p of points){
-      if(p.d.omset > 0) activePoints.push(p); else break;
-    }
-
-    const linePath = catmullRomPath(activePoints);
-    const areaPath = activePoints.length > 1
-      ? linePath + ` L ${activePoints[activePoints.length-1].x.toFixed(1)},${h - padB} L ${activePoints[0].x.toFixed(1)},${h - padB} Z`
-      : '';
-
-    const dots = points.map(p => {
-      const active = p.d.omset > 0;
-      return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${active ? 'var(--gold-bright)' : 'var(--card-border)'}"/>`;
-    }).join('');
-
-    const valueLabels = activePoints.map(p =>
-      `<text x="${p.x.toFixed(1)}" y="${(p.y-10).toFixed(1)}" text-anchor="middle" font-size="13" fill="var(--text)">${formatRupiahShort(p.d.omset)}</text>`
-    ).join('');
-
-    const monthLabels = points.map(p =>
-      `<text x="${p.x.toFixed(1)}" y="${h - 8}" text-anchor="middle" font-size="13" fill="var(--text-muted)">${p.d.bulanSingkat}</text>`
-    ).join('');
-
-    document.getElementById(elId).innerHTML = `
-      <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
-        <defs>
-          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--gold)" stop-opacity="0.35"/>
-            <stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        ${gridLines}
-        <path d="${areaPath}" fill="url(#areaGrad)" stroke="none"/>
-        <path d="${linePath}" fill="none" stroke="var(--gold)" stroke-width="2.5"/>
-        ${dots}
-        ${valueLabels}
-        ${monthLabels}
-      </svg>
-    `;
-  }
-
-  // ---------- SMOOTH AREA LINE: Tren Omset Harian dalam bulan terpilih ----------
-  function renderDailyTrendChart(elId, data){
-    if(!data || !data.length){
-      document.getElementById(elId).innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Belum ada data harian untuk bulan ini.</p>';
-      return;
-    }
-    const w = 1000, h = 300, padL = 60, padR = 20, padB = 28, padT = 20;
-    const max = Math.max.apply(null, data.map(d => d.omset).concat([1]));
-    const stepX = (w - padL - padR) / Math.max(data.length - 1, 1);
-
-    const points = data.map((d, i) => ({
-      x: padL + i * stepX,
-      y: h - padB - (max > 0 ? (d.omset / max) * (h - padT - padB) : 0),
-      d
-    }));
-
-    const gridLines = [0, 0.33, 0.66, 1].map(frac => {
-      const y = h - padB - frac * (h - padT - padB);
-      const val = max * frac;
-      return `
-        <line x1="${padL}" y1="${y.toFixed(1)}" x2="${w - padR}" y2="${y.toFixed(1)}" stroke="var(--card-border)" stroke-width="1"/>
-        <text x="${padL - 8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="11" fill="var(--text-muted)">${formatRupiahShort(val)}</text>
-      `;
-    }).join('');
-
-    const linePath = catmullRomPath(points);
-    const areaPath = points.length > 1
-      ? linePath + ` L ${points[points.length-1].x.toFixed(1)},${h - padB} L ${points[0].x.toFixed(1)},${h - padB} Z`
-      : '';
-
-    const dots = points.map(p =>
-      `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${p.d.omset > 0 ? 'var(--gold-bright)' : 'var(--card-border)'}"/>`
-    ).join('');
-
-    // label tanggal cuma tiap ~5 hari biar gak numpuk (bisa 28-31 titik)
-    const labelEvery = data.length > 20 ? 5 : (data.length > 10 ? 2 : 1);
-    const dateLabels = points.map((p, i) => {
-      if(i % labelEvery !== 0 && i !== points.length - 1) return '';
-      return `<text x="${p.x.toFixed(1)}" y="${h - 8}" text-anchor="middle" font-size="11" fill="var(--text-muted)">${p.d.tanggal}</text>`;
-    }).join('');
-
-    document.getElementById(elId).innerHTML = `
-      <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
-        <defs>
-          <linearGradient id="areaGradHarian" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--gold)" stop-opacity="0.30"/>
-            <stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        ${gridLines}
-        <path d="${areaPath}" fill="url(#areaGradHarian)" stroke="none"/>
-        <path d="${linePath}" fill="none" stroke="var(--gold)" stroke-width="2"/>
-        ${dots}
-        ${dateLabels}
-      </svg>
-    `;
+  function renderTahunChart(perBulanTahun){
+    destroyChart('chart-tahun');
+    // bulan yang belum ada data (0) digambar putus, bukan disambung ke 0
+    const dataPoints = perBulanTahun.map(d => d.omset > 0 ? d.omset : null);
+    charts['chart-tahun'] = new Chart($('chart-tahun').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: perBulanTahun.map(d => d.bulanSingkat),
+        datasets: [{
+          label: 'Omset',
+          data: dataPoints,
+          borderColor: COLOR_GOLD,
+          backgroundColor: COLOR_GOLD + '25',
+          fill: true,
+          tension: 0.35,
+          spanGaps: false,
+          pointRadius: 4,
+          pointBackgroundColor: COLOR_GOLD
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => formatRupiah(ctx.parsed.y) } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: COLOR_TEXT } },
+          y: { grid: { color: COLOR_GRID }, ticks: { color: COLOR_MUTED, callback: (v) => formatRupiahShort(v) } }
+        }
+      }
+    });
   }
 
   initMonthSelector();
