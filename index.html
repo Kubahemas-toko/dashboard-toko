@@ -54,10 +54,9 @@
   .brand-mark{
     width:44px; height:44px;
     border-radius:50%;
-    background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 55%, var(--gold-dim) 100%);
     box-shadow: 0 0 18px rgba(232,185,35,0.35);
     flex-shrink:0;
-    /* placeholder logo — ganti pakai <img src="logo.png"> kalau file logo sudah ada */
+    object-fit: cover;
   }
   .brand-text .eyebrow{
     font-size:11px;
@@ -242,8 +241,7 @@
     color: var(--text-muted);
     font-size:14px;
   }
-  #error{ color: var(--red); display:none; }
-  #empty{ display:none; }
+  #error{ color: var(--red); }
   .hidden{ display:none !important; }
 
   footer{
@@ -259,7 +257,7 @@
 <header>
   <div class="topbar">
     <div class="brand">
-      <div class="brand-mark" aria-hidden="true"></div>
+      <img class="brand-mark" src="logo.png" alt="Logo Kubah Emas">
       <div class="brand-text">
         <p class="eyebrow">Kubah Emas</p>
         <h1>Dashboard Tim Toko</h1>
@@ -286,8 +284,8 @@
 
 <main>
   <div id="loading">Memuat data…</div>
-  <div id="error"></div>
-  <div id="empty">Belum ada data untuk bulan ini.</div>
+  <div id="error" class="hidden"></div>
+  <div id="empty" class="hidden">Belum ada data untuk bulan ini.</div>
 
   <div id="content" class="hidden">
     <div class="status-line">
@@ -344,7 +342,7 @@
 
 <script>
   // GANTI dengan URL /exec hasil deploy Apps Script kamu
-  const API_URL = 'PASTE_URL_APPS_SCRIPT_DISINI';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbza-u7Cyb9D-ehx5I0XpEYlwcI_L_6wnXJeQRdnutrtyNqxOy-zHE7d4HEH5nbLsTX4Wg/exec';
 
   const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
                        'Juli','Agustus','September','Oktober','November','Desember'];
