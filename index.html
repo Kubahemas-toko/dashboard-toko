@@ -82,7 +82,7 @@
     font-family:'Oswald',sans-serif; font-size: 15px; font-weight: 500;
     letter-spacing:.06em; text-transform:uppercase; color: var(--text-muted); margin:0;
   }
-  #bulan-label{ color: var(--gold-bright); font-weight:600; }
+  #bulan-label{ color: var(--text); font-weight:700; }
   .pekan-note{ font-size:12px; color: var(--text-muted); margin: 0 0 20px; font-style:italic; }
 
   .card{
@@ -113,7 +113,7 @@
     font-family:'Oswald',sans-serif; font-size: clamp(24px, 4vw, 32px); font-weight:700;
     line-height:1.1; margin-bottom: 8px; word-break:break-word;
   }
-  .gauge-value-block .value.omset-color{ color: var(--gold-bright); }
+  .gauge-value-block .value.omset-color{ color: var(--text); }
   .gauge-value-block .value.margin-color{ color: var(--steel-bright); }
   .gauge-value-block .sub{ font-size:13px; color: var(--text-muted); }
   .gauge-value-block .sub.up{ color: var(--green); }
@@ -141,10 +141,9 @@
     opacity:0.7;
   }
 
-  .tren-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
-  @media (max-width:760px){ .tren-grid{ grid-template-columns: 1fr; } }
+  .tren-grid{ display:grid; grid-template-columns: 1fr; gap:20px; }
   .chart-card .label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color: var(--text-muted); margin-bottom:4px; }
-  .chart-card .label span{ color: var(--gold-bright); text-transform:none; letter-spacing:0; }
+  .chart-card .label span{ color: var(--text); font-weight:600; text-transform:none; letter-spacing:0; }
   .chart-wrap{ margin-top:14px; }
   .chart-wrap svg{ overflow: visible; display:block; }
   .chart-legend{ display:flex; gap:16px; margin-bottom:6px; }
@@ -260,6 +259,10 @@
           <span class="item"><span class="dot" style="background:var(--steel)"></span>Margin</span>
         </div>
         <div id="chart-minggu" class="chart-wrap"></div>
+      </div>
+      <div class="card chart-card">
+        <div class="label">Tren Omset Harian — <span id="harian-bulan-label"></span></div>
+        <div id="chart-harian" class="chart-wrap"></div>
       </div>
       <div class="card chart-card">
         <div class="label">Tren Omset Sepanjang Tahun 2026</div>
@@ -440,7 +443,8 @@
     const size = 110, stroke = 12, r = (size - stroke) / 2, c = 2 * Math.PI * r;
     const clamped = Math.max(0, Math.min(pct, 100));
     const offset = c - (clamped / 100) * c;
-    const trackColor = isNeutral ? 'var(--card-border)' : 'var(--card-border)';
+    const trackColor = 'var(--card-border)';
+    const textColor = isNeutral ? 'var(--text-muted)' : 'var(--text)';
     const displayText = isNeutral ? '—' : Math.round(pct) + '%';
     document.getElementById(elId).innerHTML = `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
@@ -449,14 +453,16 @@
           stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"
           transform="rotate(-90 ${size/2} ${size/2})"/>`}
         <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="700"
-          fill="${isNeutral ? 'var(--text-muted)' : color}" font-family="Oswald, sans-serif">${displayText}</text>
+          fill="${textColor}" font-family="Oswald, sans-serif">${displayText}</text>
       </svg>
     `;
   }
 
   function renderTren(t, highlightPekan){
     $('tren-bulan-label').textContent = t.bulan;
+    $('harian-bulan-label').textContent = t.bulan;
     renderGroupedBarChart('chart-minggu', t.perMinggu, highlightPekan);
+    renderDailyTrendChart('chart-harian', t.perHari);
     renderAreaLineChart('chart-tahun', t.perBulanTahun);
   }
 
@@ -466,7 +472,7 @@
       document.getElementById(elId).innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Belum ada data pekan untuk bulan ini.</p>';
       return;
     }
-    const w = 560, h = 240, padL = 10, padR = 10, padB = 30, padT = 24;
+    const w = 1000, h = 340, padL = 20, padR = 20, padB = 36, padT = 32;
     const maxOmset = Math.max.apply(null, data.map(d => d.omset).concat([1]));
     const maxMargin = Math.max.apply(null, data.map(d => d.margin || 0).concat([1]));
     const max = Math.max(maxOmset, maxMargin);
@@ -492,10 +498,10 @@
       return `
         <g opacity="${opacity}">
           <rect x="${omsetX.toFixed(1)}" y="${omsetY.toFixed(1)}" width="${barW.toFixed(1)}" height="${omsetH.toFixed(1)}" rx="3" fill="url(#omsetGrad)"/>
-          <text x="${(omsetX+barW/2).toFixed(1)}" y="${(omsetY-6).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="var(--gold-bright)">${formatRupiahShort(d.omset)}</text>
+          <text x="${(omsetX+barW/2).toFixed(1)}" y="${(omsetY-6).toFixed(1)}" text-anchor="middle" font-size="13" fill="var(--text)">${formatRupiahShort(d.omset)}</text>
           <rect x="${marginX.toFixed(1)}" y="${marginY.toFixed(1)}" width="${barW.toFixed(1)}" height="${marginH.toFixed(1)}" rx="3" fill="url(#marginGradSteel)"/>
-          <text x="${(marginX+barW/2).toFixed(1)}" y="${(marginY-6).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="var(--steel-bright)">${formatRupiahShort(marginVal)}</text>
-          <text x="${(groupX+groupW/2).toFixed(1)}" y="${h - padB + 18}" text-anchor="middle" font-size="11" fill="${isHighlight ? 'var(--gold-bright)' : 'var(--text-muted)'}" font-weight="${isHighlight ? '700' : '400'}">Pekan ${d.pekan}</text>
+          <text x="${(marginX+barW/2).toFixed(1)}" y="${(marginY-6).toFixed(1)}" text-anchor="middle" font-size="13" fill="var(--steel-bright)">${formatRupiahShort(marginVal)}</text>
+          <text x="${(groupX+groupW/2).toFixed(1)}" y="${h - padB + 18}" text-anchor="middle" font-size="15" fill="${isHighlight ? 'var(--text)' : 'var(--text-muted)'}" font-weight="${isHighlight ? '700' : '400'}">Pekan ${d.pekan}</text>
         </g>
       `;
     }).join('');
@@ -536,7 +542,7 @@
   }
 
   function renderAreaLineChart(elId, data){
-    const w = 560, h = 240, padL = 44, padR = 12, padB = 28, padT = 20;
+    const w = 1000, h = 340, padL = 60, padR = 20, padB = 36, padT = 28;
     const max = Math.max.apply(null, data.map(d => d.omset).concat([1]));
     const stepX = (w - padL - padR) / Math.max(data.length - 1, 1);
 
@@ -552,7 +558,7 @@
       const val = max * frac;
       return `
         <line x1="${padL}" y1="${y.toFixed(1)}" x2="${w - padR}" y2="${y.toFixed(1)}" stroke="var(--card-border)" stroke-width="1"/>
-        <text x="${padL - 8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9.5" fill="var(--text-muted)">${formatRupiahShort(val)}</text>
+        <text x="${padL - 8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="12" fill="var(--text-muted)">${formatRupiahShort(val)}</text>
       `;
     }).join('');
 
@@ -573,11 +579,11 @@
     }).join('');
 
     const valueLabels = activePoints.map(p =>
-      `<text x="${p.x.toFixed(1)}" y="${(p.y-10).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="var(--gold-bright)">${formatRupiahShort(p.d.omset)}</text>`
+      `<text x="${p.x.toFixed(1)}" y="${(p.y-10).toFixed(1)}" text-anchor="middle" font-size="13" fill="var(--text)">${formatRupiahShort(p.d.omset)}</text>`
     ).join('');
 
     const monthLabels = points.map(p =>
-      `<text x="${p.x.toFixed(1)}" y="${h - 8}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${p.d.bulanSingkat}</text>`
+      `<text x="${p.x.toFixed(1)}" y="${h - 8}" text-anchor="middle" font-size="13" fill="var(--text-muted)">${p.d.bulanSingkat}</text>`
     ).join('');
 
     document.getElementById(elId).innerHTML = `
@@ -594,6 +600,64 @@
         ${dots}
         ${valueLabels}
         ${monthLabels}
+      </svg>
+    `;
+  }
+
+  // ---------- SMOOTH AREA LINE: Tren Omset Harian dalam bulan terpilih ----------
+  function renderDailyTrendChart(elId, data){
+    if(!data || !data.length){
+      document.getElementById(elId).innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Belum ada data harian untuk bulan ini.</p>';
+      return;
+    }
+    const w = 1000, h = 300, padL = 60, padR = 20, padB = 28, padT = 20;
+    const max = Math.max.apply(null, data.map(d => d.omset).concat([1]));
+    const stepX = (w - padL - padR) / Math.max(data.length - 1, 1);
+
+    const points = data.map((d, i) => ({
+      x: padL + i * stepX,
+      y: h - padB - (max > 0 ? (d.omset / max) * (h - padT - padB) : 0),
+      d
+    }));
+
+    const gridLines = [0, 0.33, 0.66, 1].map(frac => {
+      const y = h - padB - frac * (h - padT - padB);
+      const val = max * frac;
+      return `
+        <line x1="${padL}" y1="${y.toFixed(1)}" x2="${w - padR}" y2="${y.toFixed(1)}" stroke="var(--card-border)" stroke-width="1"/>
+        <text x="${padL - 8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="11" fill="var(--text-muted)">${formatRupiahShort(val)}</text>
+      `;
+    }).join('');
+
+    const linePath = catmullRomPath(points);
+    const areaPath = points.length > 1
+      ? linePath + ` L ${points[points.length-1].x.toFixed(1)},${h - padB} L ${points[0].x.toFixed(1)},${h - padB} Z`
+      : '';
+
+    const dots = points.map(p =>
+      `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${p.d.omset > 0 ? 'var(--gold-bright)' : 'var(--card-border)'}"/>`
+    ).join('');
+
+    // label tanggal cuma tiap ~5 hari biar gak numpuk (bisa 28-31 titik)
+    const labelEvery = data.length > 20 ? 5 : (data.length > 10 ? 2 : 1);
+    const dateLabels = points.map((p, i) => {
+      if(i % labelEvery !== 0 && i !== points.length - 1) return '';
+      return `<text x="${p.x.toFixed(1)}" y="${h - 8}" text-anchor="middle" font-size="11" fill="var(--text-muted)">${p.d.tanggal}</text>`;
+    }).join('');
+
+    document.getElementById(elId).innerHTML = `
+      <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
+        <defs>
+          <linearGradient id="areaGradHarian" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--gold)" stop-opacity="0.30"/>
+            <stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        ${gridLines}
+        <path d="${areaPath}" fill="url(#areaGradHarian)" stroke="none"/>
+        <path d="${linePath}" fill="none" stroke="var(--gold)" stroke-width="2"/>
+        ${dots}
+        ${dateLabels}
       </svg>
     `;
   }
