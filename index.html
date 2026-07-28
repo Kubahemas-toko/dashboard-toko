@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
   :root{
     --bg: #0c0c0e;
@@ -417,6 +418,7 @@
   const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   const COLOR_GOLD = '#f2c230';
   const COLOR_STEEL = '#7fa8c9';
+  const COLOR_STEEL_TEXT = '#a9c8e0';
   const COLOR_MUTED = '#9a9da4';
   const COLOR_GRID = '#2b2b30';
   const COLOR_TEXT = '#ffffff';
@@ -424,6 +426,8 @@
   Chart.defaults.color = COLOR_MUTED;
   Chart.defaults.font.family = "'Inter', sans-serif";
   Chart.defaults.borderColor = COLOR_GRID;
+  Chart.register(ChartDataLabels);
+  Chart.defaults.set('plugins.datalabels', { display: false }); // default mati, dinyalain per-chart
 
   const $ = (id) => document.getElementById(id);
   let currentMonth = null;
@@ -637,9 +641,14 @@
       },
       options: {
         responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 24 } },
         plugins: {
           legend: { position: 'top', align: 'end', labels: { color: COLOR_TEXT, usePointStyle: true, boxWidth: 8 } },
-          tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + formatRupiah(ctx.parsed.y) } }
+          tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + formatRupiah(ctx.parsed.y) } },
+          datalabels: {
+            display: true, anchor: 'end', align: 'top', color: COLOR_TEXT, font: { size: 11, weight: '600' },
+            formatter: (v) => formatRupiahShort(v)
+          }
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: COLOR_TEXT } },
@@ -669,6 +678,7 @@
       },
       options: {
         responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 24 } },
         plugins: {
           legend: { display: false },
           tooltip: { callbacks: { label: (ctx) => formatRupiah(ctx.parsed.y) } }
@@ -692,11 +702,14 @@
         labels: perBulanTahun.map(d => d.bulanSingkat),
         datasets: [
           { label: '2026', data: d2026, borderColor: COLOR_GOLD, backgroundColor: COLOR_GOLD + '25',
-            fill: true, tension: 0.35, spanGaps: false, pointRadius: 4, pointBackgroundColor: COLOR_GOLD, order: 1 },
+            fill: true, tension: 0.35, spanGaps: false, pointRadius: 4, pointBackgroundColor: COLOR_GOLD, order: 1,
+            datalabels: { display: true, align: 'top', color: COLOR_TEXT, font: { size: 10, weight: '600' }, formatter: (v) => v ? formatRupiahShort(v) : '' } },
           { label: '2025', data: d2025, borderColor: '#5fb571', backgroundColor: 'transparent',
-            fill: false, tension: 0.35, spanGaps: false, pointRadius: 2, pointBackgroundColor: '#5fb571', order: 2 },
+            fill: false, tension: 0.35, spanGaps: false, pointRadius: 2, pointBackgroundColor: '#5fb571', order: 2,
+            datalabels: { display: false } },
           { label: '2024', data: d2024, borderColor: '#5b6b78', backgroundColor: 'transparent',
-            fill: false, tension: 0.35, spanGaps: false, pointRadius: 2, pointBackgroundColor: '#5b6b78', order: 3 }
+            fill: false, tension: 0.35, spanGaps: false, pointRadius: 2, pointBackgroundColor: '#5b6b78', order: 3,
+            datalabels: { display: false } }
         ]
       },
       options: {
@@ -744,10 +757,12 @@
           type: 'bar',
           data: {
             labels: seg.perPekan.map(p => 'P' + p.pekan),
-            datasets: [{ data: seg.perPekan.map(p => p.omset), backgroundColor: color, borderRadius: 4, maxBarThickness: 32 }]
+            datasets: [{ data: seg.perPekan.map(p => p.omset), backgroundColor: color, borderRadius: 4, maxBarThickness: 32,
+              datalabels: { display: true, anchor: 'end', align: 'top', color: COLOR_TEXT, font: { size: 9 }, formatter: (v) => formatRupiahShort(v) } }]
           },
           options: {
             responsive: true, maintainAspectRatio: false,
+            layout: { padding: { top: 16 } },
             plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => formatRupiah(c.parsed.y) } } },
             scales: {
               x: { grid: { display: false }, ticks: { color: COLOR_MUTED } },
@@ -769,18 +784,21 @@
           {
             type: 'bar', label: '% Kontribusi', yAxisID: 'y1',
             data: data.perKategori.map(k => k.pct * 100),
-            backgroundColor: COLOR_GOLD + 'aa', borderRadius: 4, maxBarThickness: 50, order: 2
+            backgroundColor: COLOR_GOLD + 'aa', borderRadius: 4, maxBarThickness: 50, order: 2,
+            datalabels: { display: true, anchor: 'end', align: 'top', color: COLOR_TEXT, font: { size: 11, weight: '600' }, formatter: (v) => v.toFixed(0) + '%' }
           },
           {
             type: 'line', label: 'Omset', yAxisID: 'y',
             data: data.perKategori.map(k => k.omset),
             borderColor: COLOR_STEEL, backgroundColor: COLOR_STEEL,
-            tension: 0.3, pointRadius: 4, pointBackgroundColor: COLOR_STEEL, order: 1
+            tension: 0.3, pointRadius: 4, pointBackgroundColor: COLOR_STEEL, order: 1,
+            datalabels: { display: true, align: 'bottom', color: COLOR_STEEL_TEXT, font: { size: 10, weight: '600' }, formatter: (v) => formatRupiahShort(v) }
           }
         ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 24 } },
         plugins: {
           legend: { position: 'top', align: 'end', labels: { color: COLOR_TEXT, usePointStyle: true, boxWidth: 8 } },
           tooltip: {
